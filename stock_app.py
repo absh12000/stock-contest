@@ -11,7 +11,7 @@ SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=cs
 st.set_page_config(page_title="주식 상황판 - 동행")
 
 # --- [날짜 고정 설정] ---
-BASE_DATE = "20260504"  # 시작일
+BASE_DATE = "20260511"  # 시작일
 END_DATE = "20260529"    # 최종 종료일
 
 # --- 데이터 처리 로직 ---
@@ -91,18 +91,16 @@ try:
                 change_icon = ""
                 rate_sign = ""
 
-            # [핵심 수정 부분] 모바일 전용 레이아웃: 현재가와 등락을 두 줄로 배치
+            # [수정된 모바일 레이아웃] : '누적 변동' 명칭 적용
             table_rows += f"""
             <tr style='font-size:0.95rem;'>
                 <td style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{rank_disp}</td>
                 <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>{row['참가자']}</td>
                 <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>
-                    <div style='margin-bottom:4px;'>{row['종목명']}</div>
-                    <div class='mobile-only' style='font-size: 0.9rem; color:#888; font-weight:normal;'>
-                        <div>{row['현재가']:,.0f}원</div>
-                        <div style='{color} font-size: 0.85rem; margin-top:2px;'>
-                            ({change_icon}{abs(row['등락']):,.0f})
-                        </div>
+                    <div style='margin-bottom:6px;'>{row['종목명']}</div>
+                    <div class='mobile-only' style='font-size: 0.85rem; color:#666; font-weight:normal; text-align:left; padding-left:5px;'>
+                        <div style='margin-bottom:2px;'>현재가: <span style='font-weight:bold; color:#333;'>{row['현재가']:,.0f}원</span></div>
+                        <div style='{color}'>누적 변동: <span style='font-weight:bold;'>{change_icon}{abs(row['등락']):,.0f}원</span></div>
                     </div>
                 </td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; color:#888;'>{row['기준가']:,.0f}원</td>
@@ -114,12 +112,10 @@ try:
         
         st.markdown(f"""
             <style>
-                /* PC 환경 설정 */
                 .mobile-only {{ display: none !important; }}
                 .pc-only {{ display: table-cell !important; }}
                 
                 @media (max-width: 600px) {{
-                    /* 모바일 환경 설정 */
                     .mobile-only {{ display: block !important; }}
                     .pc-only {{ display: none !important; }}
                     th, td {{ padding: 8px 4px !important; font-size: 0.85rem !important; }}
@@ -149,7 +145,8 @@ try:
 except Exception as e:
     st.error(f"오류 발생: {e}")
 
-# ... (이하 하단 설명 부분은 기존과 동일)
+st.markdown("---")
+# 하단 설명 생략 (기존과 동일)
 
 st.markdown("---")
 st.markdown(f"""
