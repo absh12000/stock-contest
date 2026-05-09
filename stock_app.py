@@ -120,7 +120,7 @@ try:
                             <th class='pc-only' style="width:15%;">기준가</th>
                             <th class='pc-only' style="width:15%;">현재가</th>
                             <th class='pc-only' style="width:15%;">등락</th>
-                            <th style="width:15%; padding:12px 5px;">수익률</th>
+                            <th style="width:17%; padding:12px 5px;">수익률</th>
                         </tr>
                     </thead>
                     <tbody>{table_rows}</tbody>
