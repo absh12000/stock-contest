@@ -11,7 +11,7 @@ SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=cs
 st.set_page_config(page_title="주식 상황판 - 동행", layout="wide")
 
 # --- [날짜 고정 설정] 여기만 수정하면 전체 페이지에 연동됩니다 ---
-BASE_DATE = "20260504"  # 시작일
+BASE_DATE = "20260430"  # 시작일
 END_DATE = "20260531"   # 최종 종료일
 
 # --- 데이터 처리 로직 ---
