@@ -7,12 +7,12 @@ from datetime import datetime, timedelta
 SHEET_ID = "1qY0Z-Mzny61lk4TfO0FNoYF870ve3sI5SbDA4jS5M0Y"
 SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
 
-# 2. 페이지 설정
+# 2. 페이지 설정 (레이아웃을 wide로 설정하여 전체 화면 활용)
 st.set_page_config(page_title="주식 상황판 - 동행", layout="wide")
 
 # --- [날짜 고정 설정] ---
-BASE_DATE = "20260511"  # 시작일
-END_DATE = "20260529"    # 최종 종료일
+BASE_DATE = "20260511" 
+END_DATE = "20260529"   
 
 @st.cache_data(ttl=600) 
 def get_safe_price(ticker, target_date):
@@ -79,22 +79,22 @@ try:
             change_icon = "▲" if row['수익률'] > 0 else ("▼" if row['수익률'] < 0 else "")
             rate_sign = "+" if row['수익률'] > 0 else ""
 
-            # [수정] 모바일에서 참가자 칸을 넓히고 명칭을 '기준대비'로 변경
+            # [수정] PC에서 종목명이 꺾이지 않도록 white-space:nowrap 추가
             table_rows += f"""
-            <tr style='font-size:0.95rem;'>
+            <tr style='font-size:1rem;'>
                 <td style='padding:15px 2px; border-bottom:1px solid #eee; font-weight:bold;'>{rank_disp}</td>
-                <td style='padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; word-break:keep-all;'>{row['참가자']}</td>
-                <td style='padding:15px 5px; border-bottom:1px solid #eee;'>
-                    <div style='font-size:1.1rem; font-weight:bold; color:#000;'>{row['종목명']}</div>
-                    <div class='mobile-only' style='font-size: 0.85rem; color:#666; margin-top:6px; font-weight:normal;'>
-                        <div style='margin-bottom:2px;'>현재가: {row['현재가']:,.0f}원</div>
+                <td style='padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; white-space:nowrap;'>{row['참가자']}</td>
+                <td style='padding:15px 10px; border-bottom:1px solid #eee; text-align:center;'>
+                    <div style='font-size:1.15rem; font-weight:bold; color:#000; white-space:nowrap;'>{row['종목명']}</div>
+                    <div class='mobile-only' style='font-size: 0.9rem; color:#666; margin-top:8px; font-weight:normal;'>
+                        <div style='margin-bottom:3px;'>현재가: {row['현재가']:,.0f}원</div>
                         <div style='{color}'>기준대비: {change_icon}{abs(row['등락']):,.0f}원</div>
                     </div>
                 </td>
-                <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; color:#888;'>{row['기준가']:,.0f}원</td>
-                <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold;'>{row['현재가']:,.0f}원</td>
-                <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; {color} font-weight:bold;'>{change_icon} {abs(row['등락']):,.0f}원</td>
-                <td style='padding:15px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1rem;'>{rate_sign}{abs(row['수익률']):.2f}%</td>
+                <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; color:#888; white-space:nowrap;'>{row['기준가']:,.0f}원</td>
+                <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold; white-space:nowrap;'>{row['현재가']:,.0f}원</td>
+                <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; white-space:nowrap;'>{change_icon} {abs(row['등락']):,.0f}원</td>
+                <td style='padding:15px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.1rem;'>{rate_sign}{abs(row['수익률']):.2f}%</td>
             </tr>
             """
         
@@ -103,24 +103,24 @@ try:
                 .mobile-only {{ display: none !important; }}
                 .pc-only {{ display: table-cell !important; }}
                 
-                @media (max-width: 800px) {{
+                @media (max-width: 850px) {{
                     .mobile-only {{ display: block !important; }}
                     .pc-only {{ display: none !important; }}
-                    th, td {{ padding: 10px 2px !important; }}
+                    th, td {{ padding: 12px 2px !important; }}
                 }}
             </style>
             
-            <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
-                <table style="width:100%; border-collapse:collapse; text-align:center;">
+            <div style="width:100%; background:white; border-radius:12px; overflow-x:auto; border:1px solid #eee;">
+                <table style="width:100%; border-collapse:collapse; text-align:center; min-width: 350px;">
                     <thead>
-                        <tr style="background-color:#1a3a5f; color:white; font-size:0.9rem;">
-                            <th style="width:15%; padding:12px 2px;">순위</th>
-                            <th style="width:25%; padding:12px 2px;">참가자</th> <!-- 참가자 폭 늘림 -->
-                            <th style="padding:12px 5px;">종목 정보</th>
+                        <tr style="background-color:#1a3a5f; color:white; font-size:0.95rem;">
+                            <th style="width:10%; padding:12px 2px;">순위</th>
+                            <th style="width:18%; padding:12px 5px;">참가자</th>
+                            <th style="width:30%; padding:12px 10px;">종목 정보</th>
                             <th class='pc-only' style="width:12%;">기준가</th>
                             <th class='pc-only' style="width:12%;">현재가</th>
                             <th class='pc-only' style="width:10%;">등락</th>
-                            <th style="width:20%; padding:12px 5px;">수익률</th>
+                            <th style="width:15%; padding:12px 5px;">수익률</th>
                         </tr>
                     </thead>
                     <tbody>{table_rows}</tbody>
