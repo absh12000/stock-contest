@@ -116,11 +116,11 @@ try:
                         <tr style="background-color:#1a3a5f; color:white; font-size:0.95rem;">
                             <th style="width:8%; padding:12px 2px;">순위</th>
                             <th style="width:12%; padding:12px 5px;">참가자</th>
-                            <th style="width:22%; padding:12px 10px;">종목 정보</th>
+                            <th style="width:20%; padding:12px 10px;">종목 정보</th>
                             <th class='pc-only' style="width:12%;">기준가</th>
                             <th class='pc-only' style="width:12%;">현재가</th>
                             <th class='pc-only' style="width:10%;">등락</th>
-                            <th style="width:15%; padding:12px 5px;">수익률</th>
+                            <th style="width:10%; padding:12px 5px;">수익률</th>
                         </tr>
                     </thead>
                     <tbody>{table_rows}</tbody>
