@@ -91,16 +91,14 @@ try:
                 change_icon = ""
                 rate_sign = ""
 
-            # [수정 포인트] 종목명 아래에 현재가 정보를 추가했습니다.
             table_rows += f"""
             <tr style='font-size:0.95rem;'>
                 <td style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{rank_disp}</td>
                 <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>{row['참가자']}</td>
                 <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>
                     <div>{row['종목명']}</div>
-                    <!-- 모바일에서만 보이는 현재가 레이아웃 -->
                     <div class='mobile-only' style='font-size:0.8rem; color:#888; font-weight:normal; margin-top:2px;'>
-                        현재가 {row['현재가']:,.0f}원
+                        현재 {row['현재가']:,.0f}원
                     </div>
                 </td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; color:#888;'>{row['기준가']:,.0f}원</td>
@@ -112,12 +110,19 @@ try:
         
         st.markdown(f"""
             <style>
-                .pc-only {{ display: table-cell; }}
+                /* PC에서는 모바일 전용 요소를 절대 숨김 */
+                .mobile-only {{ display: none !important; }}
+                .pc-only {{ display: table-cell !important; }}
+                
                 @media (max-width: 600px) {{
-                    .pc-only {{ display: none; }}
+                    /* 모바일 화면에서만 모바일 전용 요소를 노출 */
+                    .mobile-only {{ display: block !important; }}
+                    /* 모바일에서는 PC 전용 열을 숨김 */
+                    .pc-only {{ display: none !important; }}
                     th, td {{ padding: 8px 4px !important; font-size: 0.85rem !important; }}
                 }}
             </style>
+            
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
                 <table style="width:100%; border-collapse:collapse; text-align:center;">
                     <thead>
