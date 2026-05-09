@@ -79,16 +79,16 @@ try:
             change_icon = "▲" if row['수익률'] > 0 else ("▼" if row['수익률'] < 0 else "")
             rate_sign = "+" if row['수익률'] > 0 else ""
 
+            # [수정] 모바일에서 참가자 칸을 넓히고 명칭을 '기준대비'로 변경
             table_rows += f"""
             <tr style='font-size:0.95rem;'>
-                <td style='padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold;'>{rank_disp}</td>
-                <td style='padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>{row['참가자']}</td>
+                <td style='padding:15px 2px; border-bottom:1px solid #eee; font-weight:bold;'>{rank_disp}</td>
+                <td style='padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; word-break:keep-all;'>{row['참가자']}</td>
                 <td style='padding:15px 5px; border-bottom:1px solid #eee;'>
-                    <!-- 종목명: PC/모바일 공통이지만 모바일에서만 아래 정보가 붙음 -->
                     <div style='font-size:1.1rem; font-weight:bold; color:#000;'>{row['종목명']}</div>
                     <div class='mobile-only' style='font-size: 0.85rem; color:#666; margin-top:6px; font-weight:normal;'>
                         <div style='margin-bottom:2px;'>현재가: {row['현재가']:,.0f}원</div>
-                        <div style='{color}'>변동: {change_icon}{abs(row['등락']):,.0f}원</div>
+                        <div style='{color}'>기준대비: {change_icon}{abs(row['등락']):,.0f}원</div>
                     </div>
                 </td>
                 <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; color:#888;'>{row['기준가']:,.0f}원</td>
@@ -100,15 +100,13 @@ try:
         
         st.markdown(f"""
             <style>
-                /* 기본: PC 모드 */
                 .mobile-only {{ display: none !important; }}
                 .pc-only {{ display: table-cell !important; }}
                 
                 @media (max-width: 800px) {{
-                    /* 모바일 모드: 800px 이하일 때 전환 */
                     .mobile-only {{ display: block !important; }}
                     .pc-only {{ display: none !important; }}
-                    th, td {{ padding: 10px 4px !important; }}
+                    th, td {{ padding: 10px 2px !important; }}
                 }}
             </style>
             
@@ -116,13 +114,13 @@ try:
                 <table style="width:100%; border-collapse:collapse; text-align:center;">
                     <thead>
                         <tr style="background-color:#1a3a5f; color:white; font-size:0.9rem;">
-                            <th style="width:12%; padding:12px 5px;">순위</th>
-                            <th style="width:15%; padding:12px 5px;">참가자</th>
+                            <th style="width:15%; padding:12px 2px;">순위</th>
+                            <th style="width:25%; padding:12px 2px;">참가자</th> <!-- 참가자 폭 늘림 -->
                             <th style="padding:12px 5px;">종목 정보</th>
-                            <th class='pc-only' style="width:15%;">기준가</th>
-                            <th class='pc-only' style="width:15%;">현재가</th>
-                            <th class='pc-only' style="width:12%;">등락</th>
-                            <th style="width:15%; padding:12px 5px;">수익률</th>
+                            <th class='pc-only' style="width:12%;">기준가</th>
+                            <th class='pc-only' style="width:12%;">현재가</th>
+                            <th class='pc-only' style="width:10%;">등락</th>
+                            <th style="width:20%; padding:12px 5px;">수익률</th>
                         </tr>
                     </thead>
                     <tbody>{table_rows}</tbody>
