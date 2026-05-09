@@ -98,7 +98,7 @@ try:
                 <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>
                     <div>{row['종목명']}</div>
                     <div class='mobile-only' style='font-size:0.8rem; color:#888; font-weight:normal; margin-top:2px;'>
-                        현재 {row['현재가']:,.0f}원
+                        현재가: {row['현재가']:,.0f}원
                     </div>
                 </td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; color:#888;'>{row['기준가']:,.0f}원</td>
