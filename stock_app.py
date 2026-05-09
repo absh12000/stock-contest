@@ -115,7 +115,7 @@ try:
                     <thead>
                         <tr style="background-color:#1a3a5f; color:white; font-size:0.9rem;">
                             <th style="width:12%; padding:12px 2px;">순위</th> <!-- 모바일 순위 꺾임 방지 -->
-                            <th style="width:15%; padding:12px 2px;">참가자</th>
+                            <th style="width:13%; padding:12px 2px;">참가자</th>
                             <th style="width:30%; padding:12px 5px;">종목 정보</th>
                             <th class='pc-only' style="width:15%;">기준가</th>
                             <th class='pc-only' style="width:15%;">현재가</th>
