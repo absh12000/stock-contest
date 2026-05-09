@@ -91,14 +91,15 @@ try:
                 change_icon = ""
                 rate_sign = ""
 
+            # [수정된 코드] : 현재가와 등락을 한 줄에 표시하여 정보 밀도를 높임
             table_rows += f"""
             <tr style='font-size:0.95rem;'>
                 <td style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{rank_disp}</td>
                 <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>{row['참가자']}</td>
                 <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>
                     <div>{row['종목명']}</div>
-                    <div class='mobile-only' style='font-size:0.85rem; color:#888; font-weight:normal; margin-top:2px;'>
-                        현재가: {row['현재가']:,.0f}원
+                    <div class='mobile-only' style='font-size: 0.95rem; color:#666; font-weight:normal; margin-top:4px;'>
+                        {row['현재가']:,.0f}원 <span style='{color} font-size: 0.85rem;'>({change_icon}{abs(row['등락']):,.0f})</span>
                     </div>
                 </td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; color:#888;'>{row['기준가']:,.0f}원</td>
