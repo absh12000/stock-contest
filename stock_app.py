@@ -98,7 +98,10 @@ try:
                 <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>{row['참가자']}</td>
                 <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>
                     <div>{row['종목명']}</div>
-                    <div style='font-size:0.8rem; color:#888; font-weight:normal; margin-top:2px;'>현재 {row['현재가']:,.0f}원</div>
+                    <!-- 모바일에서만 보이는 현재가 레이아웃 -->
+                    <div class='mobile-only' style='font-size:0.8rem; color:#888; font-weight:normal; margin-top:2px;'>
+                        현재가 {row['현재가']:,.0f}원
+                    </div>
                 </td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; color:#888;'>{row['기준가']:,.0f}원</td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{row['현재가']:,.0f}원</td>
