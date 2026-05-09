@@ -75,18 +75,27 @@ try:
             rank = i + 1
             rank_disp = f"🥇 {rank}위" if rank == 1 else (f"🥈 {rank}위" if rank == 2 else (f"🥉 {rank}위" if rank == 3 else f"{rank}위"))
             
-            color = "color:#e74c3c;" if row['수익률'] > 0 else ("color:#3498db;" if row['수익률'] < 0 else "color:#333;")
-            change_icon = "▲" if row['수익률'] > 0 else ("▼" if row['수익률'] < 0 else "")
-            rate_sign = "+" if row['수익률'] > 0 else ""
+            # 색상 및 기호 로직 수정
+            if row['수익률'] > 0:
+                color = "color:#e74c3c;" # 빨간색
+                change_icon = "▲"
+                rate_prefix = "+"
+            elif row['수익률'] < 0:
+                color = "color:#3498db;" # 파란색
+                change_icon = "▼"
+                rate_prefix = "" # 마이너스 기호는 데이터 자체에 포함되어 나옵니다
+            else:
+                color = "color:#333;"
+                change_icon = ""
+                rate_prefix = ""
 
-            # [수정] 모바일 최적화: 줄바꿈 방지 및 글자 크기 미세 조정
             table_rows += f"""
             <tr style='font-size:0.95rem;'>
                 <td style='padding:12px 2px; border-bottom:1px solid #eee; font-weight:bold; white-space:nowrap;'>{rank_disp}</td>
                 <td style='padding:12px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; white-space:nowrap;'>{row['참가자']}</td>
                 <td style='padding:12px 10px; border-bottom:1px solid #eee; text-align:center;'>
                     <div style='font-size:1.1rem; font-weight:bold; color:#000; white-space:nowrap;'>{row['종목명']}</div>
-                    <div class='mobile-only' style='font-size: 0.8rem; color:#666; margin-top:5px; font-weight:normal;'>
+                    <div class='mobile-only' style='font-size: 0.75rem; color:#888; margin-top:4px; font-weight:normal;'>
                         <div style='margin-bottom:2px;'>현재가: {row['현재가']:,.0f}원</div>
                         <div style='{color}'>기준대비: {change_icon}{abs(row['등락']):,.0f}원</div>
                     </div>
@@ -94,7 +103,10 @@ try:
                 <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; color:#888; white-space:nowrap;'>{row['기준가']:,.0f}원</td>
                 <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold; white-space:nowrap;'>{row['현재가']:,.0f}원</td>
                 <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; white-space:nowrap;'>{change_icon} {abs(row['등락']):,.0f}원</td>
-                <td style='padding:12px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.05rem;'>{rate_sign}{abs(row['수익률']):.2f}%</td>
+                <!-- 수익률 부분: 플러스는 +, 마이너스는 데이터 그대로 표시 -->
+                <td style='padding:12px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.05rem;'>
+                    {rate_prefix}{row['수익률']:.2f}%
+                </td>
             </tr>
             """
         
