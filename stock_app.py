@@ -128,8 +128,10 @@ st.markdown(f"""
     <div style='background-color:#f1f3f5; padding:20px; border-radius:15px; border-left:5px solid #1a3a5f;'>
             <h3 style='color:#1a3a5f; margin-top:0;'>📖 사용 설명서</h3>
             <p style='font-size:0.95rem; line-height:1.8;'>
-                <b>1. 자동 업데이트</b><br>
-                장 마감 후 10분 뒤에 최신 종가로 자동 반영됩니다.<br><br>
+                <b>1. 자동 업데이트 및 데이터 출처</b><br>
+- <b>장중 (평일 09:00~15:30)</b>: 한국거래소(KRX) 기반 약 10분 단위 실시간 반영<br>
+- <b>장 마감 후</b>: 당일 최종 종가(Final Price)로 데이터 고정<br>
+- <b>정보 출처</b>: 한국거래소(KRX) 공시 데이터 기반<br><br>
                 <b>2. 데이터 기준</b><br>
                 - 시작일: {BASE_DATE[:4]}. {BASE_DATE[4:6]}. {BASE_DATE[6:]}<br>
                 - 종료일: {END_DATE[:4]}. {END_DATE[4:6]}. {END_DATE[6:]}<br>
