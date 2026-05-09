@@ -15,10 +15,13 @@ BASE_DATE = "20260504"  # 시작일
 END_DATE = "20260531"    # 최종 종료일
 
 # --- 데이터 처리 로직 ---
-@st.cache_data(ttl=600)
+# ttl=600은 600초(10분)를 의미합니다. 
+# 이 시간 동안은 새로고침을 해도 서버에서 데이터를 다시 가져오지 않고 저장된 값을 보여줍니다.
+@st.cache_data(ttl=600) 
 def get_safe_price(ticker, target_date):
     """휴장일일 경우 이전 거래일 데이터를 찾아오는 함수"""
     dt = datetime.strptime(target_date, "%Y%m%d")
+    # ... (이하 동일)
     for i in range(10):
         check_date = (dt - timedelta(days=i)).strftime("%Y%m%d")
         df = stock.get_market_ohlcv(check_date, check_date, ticker)
