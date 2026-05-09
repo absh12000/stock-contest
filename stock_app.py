@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 SHEET_ID = "1qY0Z-Mzny61lk4TfO0FNoYF870ve3sI5SbDA4jS5M0Y"
 SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
 
-# 2. 페이지 설정 (모바일 대응을 위해 layout="wide" 제거)
+# 2. 페이지 설정
 st.set_page_config(page_title="주식 상황판 - 동행")
 
 # --- [날짜 고정 설정] ---
@@ -26,7 +26,7 @@ def get_safe_price(ticker, target_date):
             return df['종가'].iloc[-1], check_date
     return None, None
 
-# --- [수정 포인트 1] 상단 타이틀 (중앙 정렬 및 모바일 최적화) ---
+# 상단 타이틀
 st.title("🤝 주식, 혼자 하니 디다! 함께해요")
 st.markdown(f"""
     <div style='padding:15px; background-color:#ffffff; border-radius:15px; border:1px solid #dee2e6; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom:20px;'>
@@ -70,7 +70,7 @@ try:
     if final_results:
         data = pd.DataFrame(final_results).sort_values(by='수익률', ascending=False).reset_index(drop=True)
         
-        # --- [수정 포인트 2] 모바일 표 스크롤 가능하도록 HTML 수정 ---
+        # --- [수정 포인트] 모바일과 PC 화면 대응 CSS 및 테이블 구조 ---
         table_rows = ""
         for i, row in data.iterrows():
             rank = i + 1
@@ -78,24 +78,40 @@ try:
             color = "color:#e74c3c;" if row['수익률'] > 0 else "color:#3498db;" if row['수익률'] < 0 else ""
             
             table_rows += f"""
-            <tr style='font-size:0.9rem;'>
-                <td style='padding:10px; border-bottom:1px solid #eee; font-weight:bold;'>{rank_disp}</td>
-                <td style='padding:10px; border-bottom:1px solid #eee; font-weight:bold;'>{row['참가자']}</td>
-                <td style='padding:10px; border-bottom:1px solid #eee;'>{row['종목명']}</td>
-                <td style='padding:10px; border-bottom:1px solid #eee;'>{row['기준가']:,.0f}</td>
-                <td style='padding:10px; border-bottom:1px solid #eee; font-weight:bold;'>{row['현재가']:,.0f}</td>
-                <td style='padding:10px; border-bottom:1px solid #eee; {color} font-weight:bold;'>{row['수익률']:+.2f}%</td>
+            <tr style='font-size:0.95rem;'>
+                <td style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{rank_disp}</td>
+                <td style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{row['참가자']}</td>
+                <td style='padding:12px 8px; border-bottom:1px solid #eee;'>{row['종목명']}</td>
+                <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; color:#888;'>{row['기준가']:,.0f}</td>
+                <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{row['현재가']:,.0f}</td>
+                <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; {color} font-weight:bold;'>{row['등락']:+,.0f}</td>
+                <td style='padding:12px 8px; border-bottom:1px solid #eee; {color} font-weight:bold;'>{row['수익률']:+.2f}%</td>
             </tr>
             """
         
-        # overflow-x: auto 설정으로 모바일에서 옆으로 밀어서 볼 수 있게 함
         st.markdown(f"""
-            <div style="overflow-x: auto;">
-                <table style="width:100%; border-collapse:collapse; text-align:center; min-width:500px; background:white;">
+            <style>
+                /* 기본적으로 PC용 열은 다 보임 */
+                .pc-only {{ display: table-cell; }}
+                
+                /* 화면 폭이 600px 이하(모바일)일 때 설정 */
+                @media (max-width: 600px) {{
+                    .pc-only {{ display: none; }} /* 기준가, 현재가, 등락 열 숨기기 */
+                    th, td {{ padding: 8px 4px !important; font-size: 0.85rem !important; }}
+                }
+            </style>
+            
+            <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
+                <table style="width:100%; border-collapse:collapse; text-align:center;">
                     <thead>
-                        <tr style="background-color:#1a3a5f; color:white; font-size:0.85rem;">
-                            <th style="padding:10px;">순위</th><th style="padding:10px;">참가자</th><th style="padding:10px;">종목명</th>
-                            <th style="padding:10px;">기준가</th><th style="padding:10px;">현재가</th><th style="padding:10px;">수익률</th>
+                        <tr style="background-color:#1a3a5f; color:white; font-size:0.9rem;">
+                            <th style="padding:12px 8px;">순위</th>
+                            <th style="padding:12px 8px;">참가자</th>
+                            <th style="padding:12px 8px;">종목명</th>
+                            <th class='pc-only' style="padding:12px 8px;">기준가</th>
+                            <th class='pc-only' style="padding:12px 8px;">현재가</th>
+                            <th class='pc-only' style="padding:12px 8px;">등락</th>
+                            <th style="padding:12px 8px;">수익률</th>
                         </tr>
                     </thead>
                     <tbody>{table_rows}</tbody>
@@ -108,7 +124,7 @@ try:
 except Exception as e:
     st.error(f"오류 발생: {e}")
 
-# --- [수정 포인트 3] 하단 설명란 (모바일에서 표 아래에 위치) ---
+# 하단 설명란
 st.markdown("---")
 st.markdown(f"""
     <div style='background-color:#f1f3f5; padding:20px; border-radius:15px; border-left:5px solid #1a3a5f;'>
