@@ -82,7 +82,7 @@ try:
         for i, row in data.iterrows():
             rank = i + 1
             # 순위 숫자 뒤에 '위'를 붙이고, 1~3위는 메달과 함께 표시합니다.
-            rank_disp = f"🥇 {rank}위" if rank == 1 else f"🥈 {rank}위" if rank == 2 else f"🥉 {rank}위" else f"{rank}위"
+            rank_disp = f"🥇 {rank}위" if rank == 1 else (f"🥈 {rank}위" if rank == 2 else (f"🥉 {rank}위" if rank == 3 else f"{rank}위"))
             
             # [네이버 표준 스타일 로직]
             if row['수익률'] > 0:
