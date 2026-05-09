@@ -70,7 +70,6 @@ try:
     if final_results:
         data = pd.DataFrame(final_results).sort_values(by='수익률', ascending=False).reset_index(drop=True)
         
-        # --- [수정 포인트] 모바일과 PC 화면 대응 CSS 및 테이블 구조 ---
         table_rows = ""
         for i, row in data.iterrows():
             rank = i + 1
@@ -89,16 +88,15 @@ try:
             </tr>
             """
         
+        # 중괄호를 두 번 사용하여 문법 오류 해결
         st.markdown(f"""
             <style>
-                /* 기본적으로 PC용 열은 다 보임 */
                 .pc-only {{ display: table-cell; }}
                 
-                /* 화면 폭이 600px 이하(모바일)일 때 설정 */
                 @media (max-width: 600px) {{
-                    .pc-only {{ display: none; }} /* 기준가, 현재가, 등락 열 숨기기 */
+                    .pc-only {{ display: none; }}
                     th, td {{ padding: 8px 4px !important; font-size: 0.85rem !important; }}
-                }
+                }}
             </style>
             
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
