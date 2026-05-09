@@ -73,7 +73,8 @@ try:
     if final_results:
         data = pd.DataFrame(final_results).sort_values(by='수익률', ascending=False).reset_index(drop=True)
         
-       table_rows = ""
+        # 76라인: 들여쓰기를 if 블록과 일치시켜야 합니다.
+        table_rows = ""
         for i, row in data.iterrows():
             rank = i + 1
             rank_disp = f"🥇 1" if rank == 1 else f"🥈 2" if rank == 2 else f"🥉 3" if rank == 3 else f"{rank}"
