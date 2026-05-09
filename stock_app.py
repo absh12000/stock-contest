@@ -27,7 +27,7 @@ def get_safe_price(ticker, target_date):
     return None, None
 
 # 상단 타이틀
-st.title("🤝 주식, 혼자 하니 디다! 함계해요.")
+st.title("🤝 주식, 혼자 하니 디다! 함해요.")
 st.markdown(f"""
     <div style='padding:15px; background-color:#ffffff; border-radius:15px; border:1px solid #dee2e6; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom:20px;'>
         <h4 style='color:#1a3a5f; margin-top:0; font-size:1.1rem;'>📈 잼이와 함께하는 '실전 정보' 주식 상황판</h4>
