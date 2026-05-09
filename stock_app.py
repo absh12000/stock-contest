@@ -98,17 +98,11 @@ try:
                 change_icon = ""
                 rate_sign = ""
 
-           # [수정된 table_rows 코드]
             table_rows += f"""
             <tr style='font-size:0.95rem;'>
                 <td style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{rank_disp}</td>
                 <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>{row['참가자']}</td>
-                
-                <td style='padding:12px; border-bottom:1px solid #eee; text-align:center;'>
-                    <div style='font-weight:bold; color:#333;'>{row['종목명']}</div>
-                    <div style='font-size:0.8rem; color:#888; margin-top:2px;'>현재 {row['현재가']:,.0f}원</div>
-                </td>
-                
+                <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>{row['종목명']}</td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; color:#888;'>{row['기준가']:,.0f}원</td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{row['현재가']:,.0f}원</td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; {color} font-weight:bold;'>{change_icon} {abs(row['등락']):,.0f}원</td>
