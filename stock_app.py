@@ -8,7 +8,7 @@ SHEET_ID = "1qY0Z-Mzny61lk4TfO0FNoYF870ve3sI5SbDA4jS5M0Y"
 SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
 
 # 2. 페이지 설정
-st.set_page_config(page_title="주식 상황판 - 동행", layout="wide")
+st.set_page_config(page_title="주식 동행", layout="wide")
 
 # --- [날짜 고정 설정] ---
 BASE_DATE = "20260511" 
