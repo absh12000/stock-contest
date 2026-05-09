@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 SHEET_ID = "1qY0Z-Mzny61lk4TfO0FNoYF870ve3sI5SbDA4jS5M0Y"
 SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
 
-# 2. 페이지 설정 (레이아웃을 wide로 설정하여 전체 화면 활용)
+# 2. 페이지 설정
 st.set_page_config(page_title="주식 상황판 - 동행", layout="wide")
 
 # --- [날짜 고정 설정] ---
@@ -79,22 +79,22 @@ try:
             change_icon = "▲" if row['수익률'] > 0 else ("▼" if row['수익률'] < 0 else "")
             rate_sign = "+" if row['수익률'] > 0 else ""
 
-            # [수정] PC에서 종목명이 꺾이지 않도록 white-space:nowrap 추가
+            # [수정] 모바일 최적화: 줄바꿈 방지 및 글자 크기 미세 조정
             table_rows += f"""
-            <tr style='font-size:1rem;'>
-                <td style='padding:15px 2px; border-bottom:1px solid #eee; font-weight:bold;'>{rank_disp}</td>
-                <td style='padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; white-space:nowrap;'>{row['참가자']}</td>
-                <td style='padding:15px 10px; border-bottom:1px solid #eee; text-align:center;'>
-                    <div style='font-size:1.15rem; font-weight:bold; color:#000; white-space:nowrap;'>{row['종목명']}</div>
-                    <div class='mobile-only' style='font-size: 0.9rem; color:#666; margin-top:8px; font-weight:normal;'>
-                        <div style='margin-bottom:3px;'>현재가: {row['현재가']:,.0f}원</div>
+            <tr style='font-size:0.95rem;'>
+                <td style='padding:12px 2px; border-bottom:1px solid #eee; font-weight:bold; white-space:nowrap;'>{rank_disp}</td>
+                <td style='padding:12px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; white-space:nowrap;'>{row['참가자']}</td>
+                <td style='padding:12px 10px; border-bottom:1px solid #eee; text-align:center;'>
+                    <div style='font-size:1.1rem; font-weight:bold; color:#000; white-space:nowrap;'>{row['종목명']}</div>
+                    <div class='mobile-only' style='font-size: 0.85rem; color:#666; margin-top:5px; font-weight:normal;'>
+                        <div style='margin-bottom:2px;'>현재가: {row['현재가']:,.0f}원</div>
                         <div style='{color}'>기준대비: {change_icon}{abs(row['등락']):,.0f}원</div>
                     </div>
                 </td>
                 <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; color:#888; white-space:nowrap;'>{row['기준가']:,.0f}원</td>
                 <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold; white-space:nowrap;'>{row['현재가']:,.0f}원</td>
                 <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; white-space:nowrap;'>{change_icon} {abs(row['등락']):,.0f}원</td>
-                <td style='padding:15px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.1rem;'>{rate_sign}{abs(row['수익률']):.2f}%</td>
+                <td style='padding:12px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.05rem;'>{rate_sign}{abs(row['수익률']):.2f}%</td>
             </tr>
             """
         
@@ -103,24 +103,24 @@ try:
                 .mobile-only {{ display: none !important; }}
                 .pc-only {{ display: table-cell !important; }}
                 
-                @media (max-width: 850px) {{
+                @media (max-width: 800px) {{
                     .mobile-only {{ display: block !important; }}
                     .pc-only {{ display: none !important; }}
-                    th, td {{ padding: 12px 2px !important; }}
+                    th, td {{ padding: 10px 2px !important; }}
                 }}
             </style>
             
-            <div style="width:100%; background:white; border-radius:12px; overflow-x:auto; border:1px solid #eee;">
-                <table style="width:100%; border-collapse:collapse; text-align:center; min-width: 350px;">
+            <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
+                <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
                     <thead>
-                        <tr style="background-color:#1a3a5f; color:white; font-size:0.95rem;">
-                            <th style="width:7%; padding:12px 2px;">순위</th>
-                            <th style="width:10%; padding:12px 5px;">참가자</th>
-                            <th style="width:18%; padding:12px 10px;">종목 정보</th>
+                        <tr style="background-color:#1a3a5f; color:white; font-size:0.9rem;">
+                            <th style="width:16%; padding:12px 2px;">순위</th> <!-- 모바일 순위 꺾임 방지 -->
+                            <th style="width:20%; padding:12px 2px;">참가자</th>
+                            <th style="width:40%; padding:12px 5px;">종목 정보</th>
                             <th class='pc-only' style="width:12%;">기준가</th>
                             <th class='pc-only' style="width:12%;">현재가</th>
                             <th class='pc-only' style="width:10%;">등락</th>
-                            <th style="width:10%; padding:12px 5px;">수익률</th>
+                            <th style="width:24%; padding:12px 5px;">수익률</th>
                         </tr>
                     </thead>
                     <tbody>{table_rows}</tbody>
@@ -132,9 +132,6 @@ try:
 
 except Exception as e:
     st.error(f"오류 발생: {e}")
-
-st.markdown("---")
-# 하단 설명 생략 (기존과 동일)
 
 st.markdown("---")
 st.markdown(f"""
@@ -152,7 +149,7 @@ st.markdown(f"""
                 <b>3. 순위 산정</b><br>
                 기준일 대비 현재가의 수익률 비중으로 실시간 순위가 결정됩니다.<br><br>
                 <b>4. 정보 공유</b><br>
-                잼이와 참가자들 간의 유익한 정보 교류를 목적으로 합니다.<br><br>
+                참가자들 간의 유익한 정보 교류를 목적으로 합니다.<br><br>
                 <span style='color:#777;'>* 수정 문의: 푸른돌디</span>
         </p>
     </div>
