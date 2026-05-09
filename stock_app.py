@@ -31,12 +31,13 @@ def get_safe_price(ticker, target_date):
 
 # 상단 타이틀
 st.title("🧭 주식 동행")
+
 st.markdown(f"""
     <div style='padding:15px; background-color:#ffffff; border-radius:15px; border:1px solid #dee2e6; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom:20px;'>
-        <h4 style='color:#1a3a5f; margin-top:0; font-size:1.1rem;'>📈 주식 동행 : 실전 정보 상황판</h4>
+        <h4 style='color:#1a3a5f; margin-top:0; font-size:1.1rem;'>🧭 주식 동행 : 실전 정보 상황판</h4>
         <p style='color:#555; font-size:0.95rem; line-height:1.5;'>
-           <b>"나누는 지식은 투자의 눈을 밝히고, 함께하는 동행은 수익의 뿌리를 깊게 합니다."</b><br>
-            <b>{BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]}</b>부터 현재까지의 성적입니다."
+            <span style='font-weight:bold; color:#333;'> "나누는 지식은 투자의 눈을 밝히고, 함께하는 동행은 수익의 뿌리를 깊게 합니다."</span><br>
+            <span style='font-weight:bold;'>{BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]}</span>부터 현재까지의 기록입니다.
         </p>
         <p style='color:#e74c3c; font-size:0.85rem; font-weight:bold; margin-bottom:0;'>
             ⚠️ [주의] 본 데이터는 정보 공유용이며, 모든 투자의 책임은 본인에게 있습니다.
