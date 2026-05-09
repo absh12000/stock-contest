@@ -32,11 +32,11 @@ st.markdown(f"""
     <div style='padding:15px; background-color:#ffffff; border-radius:15px; border:1px solid #dee2e6; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom:20px;'>
         <h4 style='color:#1a3a5f; margin-top:0; font-size:1.1rem;'>📈 잼이와 함께하는 '실전 정보' 주식 상황판</h4>
         <p style='color:#555; font-size:0.95rem; line-height:1.5;'>
-            "함께 <b>지식</b>을 나누면 길이 보입니다.<br>
+            "혼자 고민하면 <b>'디고'</b> 막막하지만, 함께 <b>지식</b>을 나누면 길이 보입니다.<br>
             <b>{BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]}</b>부터 현재까지의 성적입니다."
         </p>
         <p style='color:#e74c3c; font-size:0.85rem; font-weight:bold; margin-bottom:0;'>
-            ⚠️ 모든 투자의 책임은 본인에게 있습니다.
+            ⚠️ [주의] 본 데이터는 정보 공유용이며, 모든 투자의 책임은 본인에게 있습니다.
         </p>
     </div>
 """, unsafe_allow_html=True)
@@ -79,8 +79,8 @@ try:
             table_rows += f"""
             <tr style='font-size:0.95rem;'>
                 <td style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{rank_disp}</td>
-                <td style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{row['참가자']}</td>
-                <td style='padding:12px 8px; border-bottom:1px solid #eee;'>{row['종목명']}</td>
+                <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>{row['참가자']}</td>
+                <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>{row['종목명']}</td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; color:#888;'>{row['기준가']:,.0f}</td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{row['현재가']:,.0f}</td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; {color} font-weight:bold;'>{row['등락']:+,.0f}</td>
@@ -126,12 +126,19 @@ except Exception as e:
 st.markdown("---")
 st.markdown(f"""
     <div style='background-color:#f1f3f5; padding:20px; border-radius:15px; border-left:5px solid #1a3a5f;'>
-        <h3 style='color:#1a3a5f; margin-top:0; font-size:1.1rem;'>📖 사용 설명서</h3>
-        <p style='font-size:0.85rem; line-height:1.6;'>
-            <b>1. 자동 업데이트</b>: 장 마감 후 자동 반영<br>
-            <b>2. 데이터 기준</b>: {BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]} 시작<br>
-            <b>3. 순위 산정</b>: 현재가 수익률 기준 실시간 정렬<br>
-            <span style='color:#777;'>* 수정 문의: 푸른돌디</span>
+            <h3 style='color:#1a3a5f; margin-top:0;'>📖 사용 설명서</h3>
+            <p style='font-size:0.95rem; line-height:1.8;'>
+                <b>1. 자동 업데이트</b><br>
+                장 마감 후 10분 뒤에 최신 종가로 자동 반영됩니다.<br><br>
+                <b>2. 데이터 기준</b><br>
+                - 시작일: {BASE_DATE[:4]}. {BASE_DATE[4:6]}. {BASE_DATE[6:]}<br>
+                - 종료일: {END_DATE[:4]}. {END_DATE[4:6]}. {END_DATE[6:]}<br>
+                <small>(현재 장이 열리지 않은 경우 가장 최근 영업일 기준)</small><br><br>
+                <b>3. 순위 산정</b><br>
+                기준일 대비 현재가의 수익률 비중으로 실시간 순위가 결정됩니다.<br><br>
+                <b>4. 정보 공유</b><br>
+                잼이와 참가자들 간의 유익한 정보 교류를 목적으로 합니다.<br><br>
+                <span style='color:#777;'>* 수정 문의: 푸른돌디</span>
         </p>
     </div>
 """, unsafe_allow_html=True)
