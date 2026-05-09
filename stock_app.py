@@ -79,19 +79,20 @@ try:
             rank = i + 1
             rank_disp = f"🥇 1" if rank == 1 else f"🥈 2" if rank == 2 else f"🥉 3" if rank == 3 else f"{rank}"
             
-            # 색상, 등락 기호, 수익률 아이콘 설정 로직
+            # [네이버 표준 스타일 적용]
+            # 금액(등락)은 세모(▲/▼), 수익률은 기호(+/-)
             if row['수익률'] > 0:
                 color = "color:#e74c3c;"  # 상승: 빨간색
-                change_sign = "+"         # 등락 기호
-                rate_icon = "▲"           # 수익률 아이콘
+                change_icon = "▲"         # 금액 등락용 세모
+                rate_sign = "+"           # 수익률용 기호
             elif row['수익률'] < 0:
                 color = "color:#3498db;"  # 하락: 파란색
-                change_sign = ""          # 등락 기호 (이미 마이너스 포함됨)
-                rate_icon = "▼"           # 수익률 아이콘
+                change_icon = "▼"         # 금액 등락용 세모
+                rate_sign = "-"           # 수익률용 기호
             else:
                 color = "color:#333;"     # 보합: 검정색
-                change_sign = ""
-                rate_icon = "-"
+                change_icon = ""
+                rate_sign = ""
 
             table_rows += f"""
             <tr style='font-size:0.95rem;'>
@@ -100,8 +101,8 @@ try:
                 <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>{row['종목명']}</td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; color:#888;'>{row['기준가']:,.0f}</td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{row['현재가']:,.0f}</td>
-                <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; {color} font-weight:bold;'>{change_sign}{row['등락']:,.0f}</td>
-                <td style='padding:12px 8px; border-bottom:1px solid #eee; {color} font-weight:bold;'>{rate_icon} {abs(row['수익률']):.2f}%</td>
+                <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; {color} font-weight:bold;'>{change_icon} {abs(row['등락']):,.0f}</td>
+                <td style='padding:12px 8px; border-bottom:1px solid #eee; {color} font-weight:bold;'>{rate_sign}{abs(row['수익률']):.2f}%</td>
             </tr>
             """
         
