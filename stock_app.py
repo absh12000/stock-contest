@@ -15,13 +15,10 @@ BASE_DATE = "20260511"  # 시작일
 END_DATE = "20260529"    # 최종 종료일
 
 # --- 데이터 처리 로직 ---
-# ttl=600은 600초(10분)를 의미합니다. 
-# 이 시간 동안은 새로고침을 해도 서버에서 데이터를 다시 가져오지 않고 저장된 값을 보여줍니다.
 @st.cache_data(ttl=600) 
 def get_safe_price(ticker, target_date):
     """휴장일일 경우 이전 거래일 데이터를 찾아오는 함수"""
     dt = datetime.strptime(target_date, "%Y%m%d")
-    # ... (이하 동일)
     for i in range(10):
         check_date = (dt - timedelta(days=i)).strftime("%Y%m%d")
         df = stock.get_market_ohlcv(check_date, check_date, ticker)
@@ -76,33 +73,33 @@ try:
     if final_results:
         data = pd.DataFrame(final_results).sort_values(by='수익률', ascending=False).reset_index(drop=True)
         
-        # 76라인: 들여쓰기를 if 블록과 일치시켜야 합니다.
-        table_rows = ""
         table_rows = ""
         for i, row in data.iterrows():
             rank = i + 1
-            # 순위 숫자 뒤에 '위'를 붙이고, 1~3위는 메달과 함께 표시합니다.
             rank_disp = f"🥇 {rank}위" if rank == 1 else (f"🥈 {rank}위" if rank == 2 else (f"🥉 {rank}위" if rank == 3 else f"{rank}위"))
             
-            # [네이버 표준 스타일 로직]
             if row['수익률'] > 0:
-                color = "color:#e74c3c;"  # 상승: 빨간색
-                change_icon = "▲"         # 금액 등락용 세모
-                rate_sign = "+"           # 수익률용 기호
+                color = "color:#e74c3c;"
+                change_icon = "▲"
+                rate_sign = "+"
             elif row['수익률'] < 0:
-                color = "color:#3498db;"  # 하락: 파란색
-                change_icon = "▼"         # 금액 등락용 세모
-                rate_sign = "-"           # 수익률용 기호
+                color = "color:#3498db;"
+                change_icon = "▼"
+                rate_sign = "-"
             else:
-                color = "color:#333;"     # 보합: 검정색
+                color = "color:#333;"
                 change_icon = ""
                 rate_sign = ""
 
+            # [수정 포인트] 종목명 아래에 현재가 정보를 추가했습니다.
             table_rows += f"""
             <tr style='font-size:0.95rem;'>
                 <td style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{rank_disp}</td>
                 <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>{row['참가자']}</td>
-                <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>{row['종목명']}</td>
+                <td style='padding:12px; border-bottom:1px solid #eee; font-weight:bold; color:#333;'>
+                    <div>{row['종목명']}</div>
+                    <div style='font-size:0.8rem; color:#888; font-weight:normal; margin-top:2px;'>현재 {row['현재가']:,.0f}원</div>
+                </td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; color:#888;'>{row['기준가']:,.0f}원</td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; font-weight:bold;'>{row['현재가']:,.0f}원</td>
                 <td class='pc-only' style='padding:12px 8px; border-bottom:1px solid #eee; {color} font-weight:bold;'>{change_icon} {abs(row['등락']):,.0f}원</td>
@@ -110,17 +107,14 @@ try:
             </tr>
             """
         
-        # 중괄호를 두 번 사용하여 문법 오류 해결
         st.markdown(f"""
             <style>
                 .pc-only {{ display: table-cell; }}
-                
                 @media (max-width: 600px) {{
                     .pc-only {{ display: none; }}
                     th, td {{ padding: 8px 4px !important; font-size: 0.85rem !important; }}
                 }}
             </style>
-            
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
                 <table style="width:100%; border-collapse:collapse; text-align:center;">
                     <thead>
@@ -144,7 +138,6 @@ try:
 except Exception as e:
     st.error(f"오류 발생: {e}")
 
-# 하단 설명란
 st.markdown("---")
 st.markdown(f"""
     <div style='background-color:#f1f3f5; padding:20px; border-radius:15px; border-left:5px solid #1a3a5f;'>
