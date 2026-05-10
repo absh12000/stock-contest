@@ -105,6 +105,12 @@ rank_html = f"""
     </div>
 </div>
 """
+            else:
+                rank_disp = f"""
+                <div style="text-align: center; font-size: 1rem; color: #333; font-weight: bold;">
+                    {rank}위
+                </div>
+                """
             
             # 색상/기호 로직
             if row['수익률'] > 0:
