@@ -12,7 +12,7 @@ SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=cs
 st.set_page_config(page_title="주식 동행", layout="wide")
 
 # --- [날짜 고정 설정] ---
-BASE_DATE = "20260504" 
+BASE_DATE = "20260511" 
 END_DATE = "20260529"    
 
 @st.cache_data
