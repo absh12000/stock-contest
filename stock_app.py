@@ -113,7 +113,6 @@ try:
             rank_disp = f"<div>{rank}위</div>"
             print(f"에러 발생: {e}")
 
-
             # 색상/기호 로직
             if row['수익률'] > 0:
                 color, icon, prefix = "color:#e74c3c;", "▲", "+"
