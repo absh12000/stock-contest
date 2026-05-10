@@ -92,7 +92,7 @@ try:
                     <span style="font-size: 1rem; color: #333; font-weight: bold; position: relative; z-index: 1;">
                         {rank}위
                     </span>
-                    <span style="font-size: 1.4rem; position: absolute; top: -10px; left: 10px; z-index: 2; opacity: 0.85;">
+                    <span style="font-size: 1.4rem; position: absolute; top: -30px; left: 10px; z-index: 2; opacity: 0.85;">
                         {medal_icon}
                     </span>
                 </div>
