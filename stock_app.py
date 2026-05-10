@@ -83,10 +83,10 @@ try:
         last_date = data['최종날짜'].iloc[0]
         
         table_rows = ""
-        for i, row in data.iterrows():
+       for i, row in data.iterrows():
             rank = i + 1
             
-            # --- [수정 포인트: 순위 위 메달 로직] ---
+            # 1. 메달 설정 (1~3위만 공중부양)
             medal_html = ""
             if rank == 1: medal_html = '<span style="position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.3rem;">🥇</span>'
             elif rank == 2: medal_html = '<span style="position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.3rem;">🥈</span>'
@@ -100,7 +100,7 @@ try:
             else:
                 color, icon, prefix = "color:#333;", "", ""
 
-            # 테이블 행 조립: 순위와 참가자 칸의 높이 및 수평 라인 통일
+            # 2. 전체 행 조립 (여기서 td 개수를 정확히 맞춰야 안 깨집니다)
             table_rows += f"""
             <tr style="font-size:0.95rem;">
                 <td style="padding:15px 2px 10px 2px; border-bottom:1px solid #eee; text-align:center; vertical-align:middle;">
@@ -111,7 +111,7 @@ try:
                         </span>
                     </div>
                 </td>
-                <td style="padding:15px 5px 10px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; vertical-align:middle;">
+                <td style="padding:15px 5px 10px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; text-align:center; vertical-align:middle;">
                     {row['참가자']}
                 </td>
                 <td style="padding:12px 10px; border-bottom:1px solid #eee; text-align:center;">
