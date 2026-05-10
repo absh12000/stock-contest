@@ -86,18 +86,22 @@ try:
         for i, row in data.iterrows():
             rank = i + 1
             
-# [교정본] 중복 else 제거 및 메달/숫자 수직 배치
+            # [최종 교정] 메달은 공중에 띄우고 숫자와 이름 라인은 칼같이 일치
             if rank in [1, 2, 3]:
                 medal_icon = ["🥇", "🥈", "🥉"][rank-1]
                 rank_disp = f"""
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;">
-                    <div style="font-size: 1.2rem;">{medal_icon}</div>
-                    <div style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</div>
+                <div style="position: relative; display: flex; align-items: center; justify-content: center; height: 40px; width: 100%;">
+                    <div style="position: absolute; top: -12px; font-size: 1.3rem; width: 100%; text-align: center;">
+                        {medal_icon}
+                    </div>
+                    <div style="font-size: 1rem; color: #333; font-weight: bold; margin-top: 10px;">
+                        {rank}위
+                    </div>
                 </div>
                 """
             else:
                 rank_disp = f"""
-                <div style="text-align: center; font-size: 1rem; color: #333; font-weight: bold;">
+                <div style="display: flex; align-items: center; justify-content: center; height: 40px; font-size: 1rem; color: #333; font-weight: bold; margin-top: 10px;">
                     {rank}위
                 </div>
                 """
