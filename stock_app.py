@@ -125,7 +125,7 @@ try:
                     <div style='font-size:1.0rem; font-weight:bold; color:#000; white-space:nowrap;'>{row['종목명']}</div>
                     <div class='mobile-only' style='font-size: 0.75rem; color:#666; margin-top:5px; font-weight:normal;'>
                         <div style='margin-bottom:2px;'>현재가: {row['현재가']:,.0f}원</div>
-                        <div style='{color}'>기준대비: {change_icon}{abs(row['등락']):,.0f}원</div>
+                        <div style='{color}'>기준가대비: {change_icon}{abs(row['등락']):,.0f}원</div>
                     </div>
                 </td>
                 <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; color:#888; white-space:nowrap;'>{row['기준가']:,.0f}원</td>
