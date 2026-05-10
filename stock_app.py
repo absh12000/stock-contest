@@ -147,56 +147,62 @@ try:
 except Exception as e:
     st.error(f"오류 발생: {e}")
 
-# [하단 문구 - 가독성 강화 플랫 디자인 버전]
+# [하단 문구 - 중괄호 충돌 원천 차단 버전]
 st.markdown("---")
 st.markdown(f"""
-    <div style="width:100%; padding:30px; background-color:#ffffff; border-radius:12px; border:1px solid #e9ecef; font-family: sans-serif;">
-        <h3 style="color:#1a3a5f; margin-bottom:25px; font-size:1.4rem; border-bottom:2px solid #1a3a5f; padding-bottom:10px; display:inline-block;">
+    <div style="width:100%; padding:25px; background-color:#ffffff; border-radius:12px; border:1px solid #e9ecef;">
+        <h3 style="color:#1a3a5f; margin-bottom:20px; font-size:1.3rem; border-bottom:2px solid #1a3a5f; padding-bottom:10px; display:inline-block;">
             🧭 데이터 산출 가이드
         </h3>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-            <div style="margin-bottom:15px;">
-                <b style="color:#1a3a5f; font-size:1rem;">1. 데이터 기준 및 출처</b><br>
-                <span style="font-size:0.92rem; color:#555; line-height:1.7;">
-                - 한국거래소(KRX) 시장 정보 실시간 참조<br>
-                - 출처: KRX 정보데이터시스템
-                </span>
-            </div>
+        <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+            <tr>
+                <td style="vertical-align:top; padding-bottom:20px;">
+                    <b style="color:#1a3a5f; font-size:1rem;">1. 데이터 기준 및 출처</b><br>
+                    <span style="font-size:0.92rem; color:#555; line-height:1.7;">
+                    - 한국거래소(KRX) 시장 정보 실시간 참조<br>
+                    - 출처: KRX 정보데이터시스템
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align:top; padding-bottom:20px;">
+                    <b style="color:#1a3a5f; font-size:1rem;">2. 휴일 및 비영업일 반영</b><br>
+                    <span style="font-size:0.92rem; color:#555; line-height:1.7;">
+                    - 휴장일(토/일/공휴일)은 직전 거래일 종가 기준<br>
+                    - 반영 기간: {BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]} ~ {END_DATE[:4]}.{END_DATE[4:6]}.{END_DATE[6:]}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align:top; padding-bottom:20px;">
+                    <b style="color:#1a3a5f; font-size:1rem;">3. 장중 vs 장마감 데이터</b><br>
+                    <span style="font-size:0.92rem; color:#555; line-height:1.7;">
+                    - <b>장중(09:00~15:30):</b> 실시간 체결가 기반 수익률 산출<br>
+                    - <b>장마감 후:</b> 당일 최종 확정 종가로 데이터 고정
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align:top; padding-bottom:20px;">
+                    <b style="color:#1a3a5f; font-size:1rem;">4. 실시간 데이터 오차 안내</b><br>
+                    <span style="font-size:0.92rem; color:#555; line-height:1.7;">
+                    - API 수집 특성상 <b>1분~20분 시세 지연</b> 가능성<br>
+                    - 변동성 극심할 때 HTS/MTS와 수치 차이 발생 가능
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align:top; padding-top:15px; border-top:1px dashed #dee2e6;">
+                    <b style="color:#1a3a5f; font-size:1rem;">5. 데이터 업데이트</b><br>
+                    <span style="font-size:0.92rem; color:#555;">
+                    - 브라우저 <b>새로고침(F5)</b> 시 최신 시세를 수집하여 즉시 반영합니다.
+                    </span>
+                </td>
+            </tr>
+        </table>
 
-            <div style="margin-bottom:15px;">
-                <b style="color:#1a3a5f; font-size:1rem;">2. 휴일 및 비영업일 반영</b><br>
-                <span style="font-size:0.92rem; color:#555; line-height:1.7;">
-                - 휴장일(토/일/공휴일)은 직전 거래일 종가 기준<br>
-                - 반영 기간: {BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]} ~ {END_DATE[:4]}.{END_DATE[4:6]}.{END_DATE[6:]}
-                </span>
-            </div>
-
-            <div style="margin-bottom:15px;">
-                <b style="color:#1a3a5f; font-size:1rem;">3. 장중 vs 장마감 데이터</b><br>
-                <span style="font-size:0.92rem; color:#555; line-height:1.7;">
-                - <b>장중(09:00~15:30):</b> 실시간 체결가 기반 수익률 산출<br>
-                - <b>장마감 후:</b> 당일 최종 확정 종가로 데이터 고정
-                </span>
-            </div>
-
-            <div style="margin-bottom:15px;">
-                <b style="color:#1a3a5f; font-size:1rem;">4. 실시간 데이터 오차 안내</b><br>
-                <span style="font-size:0.92rem; color:#555; line-height:1.7;">
-                - API 수집 특성상 <b>1분~20분 시세 지연</b> 가능성<br>
-                - 변동성 극심할 때 HTS/MTS와 수치 차이 발생 가능
-                </span>
-            </div>
-        </div>
-
-        <div style="margin-top:25px; padding-top:20px; border-top:1px dashed #dee2e6;">
-            <b style="color:#1a3a5f; font-size:1rem;">5. 데이터 업데이트</b><br>
-            <span style="font-size:0.92rem; color:#555;">
-            - 브라우저 <b>새로고침(F5)</b> 시 최신 시세를 수집하여 즉시 반영합니다.
-            </span>
-        </div>
-
-        <div style="margin-top:30px; background-color:#fff5f5; padding:15px; border-radius:8px;">
+        <div style="margin-top:25px; background-color:#fff5f5; padding:15px; border-radius:8px;">
             <p style="color:#e74c3c; font-weight:bold; font-size:0.88rem; margin:0;">
                 ⚠️ [주의] 본 데이터는 정보 공유 목적이며, 모든 투자의 책임은 투자자 본인에게 있습니다.
             </p>
