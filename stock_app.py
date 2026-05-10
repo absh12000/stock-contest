@@ -153,8 +153,7 @@ st.markdown(f"""
             <h3 style='color:#1a3a5f; margin-top:0;'>📖 사용 설명서</h3>
             <p style='font-size:0.95rem; line-height:1.8;'>
                 <b>1. 업데이트 안내</b><br>
-- 본 페이지는 사용자가 <b>새로고침(F5)</b>을 할 때 최신 데이터를 수집합니다.<br>
-- 동일 종목 중복 조회 방지 및 병렬 처리 시스템으로 인원이 많아져도 속도가 빠릅니다.<br><br>
+- 본 페이지는 <b>새로고침(F5)</b>을 할 때 최신 데이터를 수집합니다.<br>
                 <b>2. 데이터 기준</b><br>
                 - 시작일: {BASE_DATE[:4]}. {BASE_DATE[4:6]}. {BASE_DATE[6:]}<br>
                 - 종료일: {END_DATE[:4]}. {END_DATE[4:6]}. {END_DATE[6:]}<br>
