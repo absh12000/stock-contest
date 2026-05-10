@@ -152,14 +152,14 @@ st.markdown(f"""
     <div style='background-color:#ffffff; padding:25px; border-radius:10px; border:1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.05);'>
         <h3 style='color:#1a3a5f; margin-top:0; margin-bottom:20px; border-bottom:2px solid #1a3a5f; padding-bottom:10px;'>🧭 데이터 산출 가이드</h3>
         <p style='font-size:0.95rem; line-height:1.8; color:#333; margin:0;'>
-            <b>1. 데이터 기준 및 출처</b><br>
-            - 본 시스템은 <b>한국거래소(KRX)</b>의 시장 정보를 실시간으로 참조합니다.<br>
-            - 자료 출처: KRX(한국거래소) 정보데이터시스템<br><br>
-            
-            <b>2. 휴일 및 비영업일 데이터 반영</b><br>
+             <b>2. 휴일 및 비영업일 데이터 반영</b><br>
             - 한국거래소 휴장일(토, 일, 공휴일)에는 시장 데이터가 업데이트되지 않습니다.<br>
             - 따라서 휴일에는 <b>직전 거래일의 최종 종가</b>를 기준으로 데이터가 산출됩니다.<br>
             - 데이터 반영 기간: 2026.05.04 ~ 2026.05.29<br><br>
+            
+            <b>1. 데이터 기준 및 출처</b><br>
+            - 본 시스템은 <b>한국거래소(KRX)</b>의 시장 정보를 실시간으로 참조합니다.<br>
+            - 자료 출처: KRX(한국거래소) 정보데이터시스템<br><br>
 
             <b>3. 장중 데이터와 장마감 데이터의 차이</b><br>
             - <b>장중 (09:00~15:30):</b> 현재 접속 시점의 실시간 체결가를 바탕으로 수익률을 계산합니다.<br>
