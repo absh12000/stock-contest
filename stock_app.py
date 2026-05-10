@@ -147,31 +147,31 @@ try:
 except Exception as e:
     st.error(f"오류 발생: {e}")
 
-# [교정본] 따옴표 충돌을 원천 차단한 안전한 하단 문구
+# [교정본] 변수 충돌을 원천 차단한 가장 안전한 하단 문구 방식
 st.markdown("---")
 
-# 제목 부분
+# 1. 제목 출력
 st.markdown('<h3 style="color:#1a3a5f; border-bottom:2px solid #1a3a5f; padding-bottom:10px;">🧭 데이터 산출 가이드</h3>', unsafe_allow_html=True)
 
-# 본문 상세 내용 (f-string 대신 일반 문자열로 에러 방지)
-guide_html = f"""
+# 2. 본문 출력 (에러를 방지하기 위해 변수 사용을 최소화한 순수 HTML 방식)
+guide_content = """
 <div style="padding:20px; background-color:#ffffff; border:1px solid #e9ecef; border-radius:12px;">
-    <p style="font-size:0.92rem; line-height:1.8; color:#444;">
-        <b style="color:#1a3a5f;">1. 데이터 기준 및 출처</b><br>
+    <p style="font-size:0.92rem; line-height:1.8; color:#444; margin:0;">
+        <strong style="color:#1a3a5f;">1. 데이터 기준 및 출처</strong><br>
         - 한국거래소(KRX) 시장 정보 실시간 참조 / 출처: KRX 정보데이터시스템<br><br>
 
-        <b style="color:#1a3a5f;">2. 휴일 및 비영업일 반영</b><br>
+        <strong style="color:#1a3a5f;">2. 휴일 및 비영업일 반영</strong><br>
         - 휴장일(토/일/공휴일)은 직전 거래일 종가 기준<br>
-        - 반영 기간: {BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]} ~ {END_DATE[:4]}.{END_DATE[4:6]}.{END_DATE[6:]}<br><br>
+        - 데이터 반영 기간: 2026.05.04 ~ 2026.05.29<br><br>
 
-        <b style="color:#1a3a5f;">3. 장중 vs 장마감 데이터</b><br>
+        <strong style="color:#1a3a5f;">3. 장중 vs 장마감 데이터</strong><br>
         - <b>장중(09:00~15:30):</b> 실시간 체결가 기반 수익률 산출<br>
         - <b>장마감 후:</b> 당일 최종 확정 종가로 데이터 고정<br><br>
 
-        <b style="color:#1a3a5f;">4. 실시간 데이터 오차 안내</b><br>
-        - 시스템 특성상 <b>1분~20분 시세 지연</b> 가능성 및 HTS와 오차 발생 가능<br><br>
+        <strong style="color:#1a3a5f;">4. 실시간 데이터 오차 안내</strong><br>
+        - 시스템 특성상 <b>1분~20분 시세 지연</b> 가능성 및 HTS와 오차 발생 가능성 존재<br><br>
 
-        <b style="color:#1a3a5f;">5. 데이터 업데이트</b><br>
+        <strong style="color:#1a3a5f;">5. 데이터 업데이트</strong><br>
         - 브라우저 <b>새로고침(F5)</b> 시 최신 시세를 수집하여 즉시 반영합니다.<br><br>
 
         <span style="color:#e74c3c; font-weight:bold;">⚠️ [주의] 본 데이터는 정보 공유 목적이며, 모든 투자의 책임은 본인에게 있습니다.</span><br>
@@ -180,4 +180,4 @@ guide_html = f"""
 </div>
 """
 
-st.markdown(guide_html, unsafe_allow_html=True)
+st.markdown(guide_content, unsafe_allow_html=True)
