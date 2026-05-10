@@ -85,7 +85,29 @@ try:
         table_rows = ""
         for i, row in data.iterrows():
             rank = i + 1
-            rank_disp = f"🥇 {rank}위" if rank == 1 else (f"🥈 {rank}위" if rank == 2 else (f"🥉 {rank}위" if rank == 3 else f"{rank}위"))
+            
+            # [1] 메달 설정: 1~3위만 공중에 띄울 메달 준비
+            medal_html = ""
+            if rank == 1: medal_html = '<span style="position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.3rem;">🥇</span>'
+            elif rank == 2: medal_html = '<span style="position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.3rem;">🥈</span>'
+            elif rank == 3: medal_html = '<span style="position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.3rem;">🥉</span>'
+
+            # [2] 순위와 이름을 한 줄로 묶는 통합 부품
+            rank_and_name_html = f"""
+            <div style="display: flex; align-items: baseline; justify-content: flex-start; gap: 10px; padding-left: 5px;">
+                <div style="position: relative; min-width: 45px; text-align: center;">
+                    {medal_html}
+                    <span style="font-size: 1rem; font-weight: bold; color: {'#333' if rank <= 3 else '#666'};">
+                        {rank}위
+                    </span>
+                </div>
+                <div style="font-size: 1.1rem; font-weight: bold; color: #1a3a5f; white-space: nowrap;">
+                    {row['참가자']}
+                </div>
+            </div>
+            """
+            
+            # (이하 수익률 색상 로직 및 table_rows 조립 부분...)else f"{rank}위"))
             
             # 색상/기호 로직
             if row['수익률'] > 0:
