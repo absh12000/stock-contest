@@ -85,7 +85,7 @@ try:
         table_rows = ""
         for i, row in data.iterrows():
             rank = i + 1
-            rank_disp = f"🥇 {rank}위" if rank == 1 else (f"🥈 {rank}위" if rank == 2 else (f"🥉 {rank}위" if rank == 3
+            rank_disp = f"🥇 {rank}위" if rank == 1 else (f"🥈 {rank}위" if rank == 2 else (f"🥉 {rank}위" if rank == 3 else f"{rank}위"))
             
             # 색상/기호 로직
             if row['수익률'] > 0:
