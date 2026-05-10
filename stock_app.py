@@ -86,7 +86,7 @@ try:
         for i, row in data.iterrows():
             rank = i + 1
             
-            # [교정본] 들여쓰기 완벽 정렬 및 메달/숫자 수직 배치
+            # [교정본] 중복 else 제거 및 메달/숫자 수직 배치
             if rank in [1, 2, 3]:
                 medal_icon = ["🥇", "🥈", "🥉"][rank-1]
                 rank_disp = f"""
@@ -101,14 +101,6 @@ try:
                     {rank}위
                 </div>
                 """
-            else:
-                rank_disp = f"""
-                <div style="text-align: center; font-size: 1rem; color: #333; font-weight: bold;">
-                    {rank}위
-                </div>
-                """
-            else:
-                rank_disp = f"<div style='font-weight:bold; color:#666;'>{rank}위</div>"
             
             # 색상/기호 로직
             if row['수익률'] > 0:
