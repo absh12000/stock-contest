@@ -86,7 +86,7 @@ try:
         for i, row in data.iterrows():
             rank = i + 1
             
-                                try:
+                                        try:
             # 1. 1~3위 메달 설정 (나머지는 빈 값)
             medal_html = ""
             if rank == 1: medal_html = '<span style="position: absolute; top: -18px; font-size: 1.3rem;">🥇</span>'
