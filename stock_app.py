@@ -86,13 +86,19 @@ try:
         for i, row in data.iterrows():
             rank = i + 1
             
-           # [교정본] 메달을 숫자 위 정중앙에 배치 (가독성 최적화)
+            # [교정본] 들여쓰기 완벽 정렬 및 메달/숫자 수직 배치
             if rank in [1, 2, 3]:
                 medal_icon = ["🥇", "🥈", "🥉"][rank-1]
                 rank_disp = f"""
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1;">
-                    <div style="font-size: 1.4rem; margin-bottom: 2px;">{medal_icon}</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;">
+                    <div style="font-size: 1.4rem;">{medal_icon}</div>
                     <div style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</div>
+                </div>
+                """
+            else:
+                rank_disp = f"""
+                <div style="text-align: center; font-size: 1rem; color: #333; font-weight: bold;">
+                    {rank}위
                 </div>
                 """
             else:
