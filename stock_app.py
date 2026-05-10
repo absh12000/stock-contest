@@ -13,7 +13,7 @@ st.set_page_config(page_title="주식 동행", layout="wide")
 
 # --- [날짜 고정 설정] ---
 BASE_DATE = "20260504" 
-END_DATE = "20260529"   
+END_DATE = "20260529"    
 
 @st.cache_data
 def get_safe_price(ticker, target_date):
@@ -83,37 +83,16 @@ try:
         last_date = data['최종날짜'].iloc[0]
         
         table_rows = ""
-# [교정본] 숫자와 이름은 바닥 라인을 맞추고, 메달은 공중에 띄우는 방식
-if rank in [1, 2, 3]:
-    medal_icon = ["🥇", "🥈", "🥉"][rank-1]
-    display_html = f"""
-    <div style="display: flex; align-items: baseline; justify-content: flex-start; gap: 10px; height: 35px;">
-        <div style="position: relative; min-width: 45px; text-align: center;">
-            <span style="position: absolute; left: 50%; transform: translateX(-50%); top: -20px; font-size: 1.3rem;">
-                {medal_icon}
-            </span>
-            <span style="font-size: 1rem; font-weight: bold; color: #333;">{rank}위</span>
-        </div>
-        
-        <div style="font-size: 1.1rem; font-weight: bold; color: #1a3a5f; white-space: nowrap;">
-            {row['참가자']}
-        </div>
-    </div>
-    """
-else:
-    # 4위 이하: 메달 없이 숫자와 이름 수평 정렬
-    display_html = f"""
-    <div style="display: flex; align-items: baseline; justify-content: flex-start; gap: 10px; height: 35px;">
-        <div style="min-width: 45px; text-align: center; font-size: 1rem; font-weight: bold; color: #666;">
-            {rank}위
-        </div>
-        <div style="font-size: 1.1rem; font-weight: bold; color: #1a3a5f;">
-            {row['참가자']}
-        </div>
-    </div>
-    """
+        for i, row in data.iterrows():
+            rank = i + 1
             
-            # 색상/기호 로직
+            # --- [수평 정렬 및 메달 공중부양 로직] ---
+            medal_html = ""
+            if rank == 1: medal_html = '<span style="position: absolute; left: 50%; transform: translateX(-50%); top: -20px; font-size: 1.3rem;">🥇</span>'
+            elif rank == 2: medal_html = '<span style="position: absolute; left: 50%; transform: translateX(-50%); top: -20px; font-size: 1.3rem;">🥈</span>'
+            elif rank == 3: medal_html = '<span style="position: absolute; left: 50%; transform: translateX(-50%); top: -20px; font-size: 1.3rem;">🥉</span>'
+            
+            # 수익률 색상/기호 로직
             if row['수익률'] > 0:
                 color, icon, prefix = "color:#e74c3c;", "▲", "+"
             elif row['수익률'] < 0:
@@ -121,11 +100,20 @@ else:
             else:
                 color, icon, prefix = "color:#333;", "", ""
 
-            # [수정 핵심] PC는 1.0rem 유지, 모바일만 상세 3줄(기준가/현재가/등락)로 배치
+            # 테이블 행(Row) 조립
             table_rows += f"""
             <tr style="font-size:0.95rem;">
-                <td style="padding:12px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
-                <td style="padding:12px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
+                <td style="padding:15px 2px 10px 2px; border-bottom:1px solid #eee; text-align:center; vertical-align:middle;">
+                    <div style="position: relative; display: inline-block; min-width: 45px;">
+                        {medal_html}
+                        <span style="font-size: 1rem; font-weight: bold; color: {'#333' if rank <= 3 else '#666'}; line-height: 1;">
+                            {rank}위
+                        </span>
+                    </div>
+                </td>
+                <td style="padding:15px 5px 10px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; text-align:center; vertical-align:middle;">
+                    {row['참가자']}
+                </td>
                 <td style="padding:12px 10px; border-bottom:1px solid #eee; text-align:center;">
                     <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px;">{row['종목명']}</div>
                     <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
