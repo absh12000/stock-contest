@@ -148,32 +148,35 @@ except Exception as e:
     st.error(f"오류 발생: {e}")
 
 st.markdown("---")
-st.markdown(f"""
-    <div style='background-color:#f8f9fa; padding:20px; border-radius:15px; border-left:5px solid #1a3a5f; box-shadow: inset 0 0 10px rgba(0,0,0,0.02);'>
-        <h3 style='color:#1a3a5f; margin-top:0; font-size:1.2rem; display:flex; align-items:center;'>
-            🧭 데이터 산출 가이드
-        </h3>
-        <p style='font-size:0.92rem; line-height:1.8; color:#444;'>
-            <b style='color:#1a3a5f;'>1. 데이터 기준 및 출처</b><br>
-            - 본 시스템은 <b>한국거래소(KRX)</b>에서 제공하는 시장 정보를 실시간으로 참조합니다.<br>
-            - 자료 출처: KRX(한국거래소) 정보데이터시스템<br><br>
-            
-            <b style='color:#1a3a5f;'>2. 휴일 및 비영업일 데이터 반영</b><br>
-            - 한국거래소 휴장일(토, 일, 공휴일)에는 시장 데이터가 업데이트되지 않으므로, <b>직전 거래일의 최종 종가</b>를 기준으로 산출됩니다.<br><br>
-
-            <b style='color:#1a3a5f;'>3. 장중 데이터와 장마감 데이터의 차이</b><br>
-            - <b>장중(09:00~15:30):</b> 현재 접속 시점의 실시간 체결가를 바탕으로 수익률을 계산합니다.<br>
-            - <b>장마감 후:</b> 당일 최종 확정된 종가(Final Closing Price)를 기준으로 데이터가 고정됩니다.<br><br>
-
-            <b style='color:#1a3a5f;'>4. 실시간 데이터 오차 안내</b><br>
-            - 시스템 특성상 API 수집 과정에서 <b>약 1분~20분 정도의 시세 지연</b>이 발생할 수 있습니다.<br>
-            - 장중 변동성이 극심한 시점에는 HTS/MTS 실시간 호가와 본 페이지의 수치에 다소 오차가 있을 수 있으므로 참고용으로 활용해 주시기 바랍니다.<br><br>
-            
-            <b style='color:#1a3a5f;'>5. 데이터 업데이트(새로고침)</b><br>
-            - 본 페이지의 정보는 사용자가 브라우저를 <b>새로고침(F5)</b>할 때마다 최신 시세를 다시 수집하여 반영합니다.<br><br>
-            
-            <span style='color:#e74c3c; font-weight:bold;'>⚠️ [주의] 본 데이터는 정보 공유를 목적으로 하며, 모든 투자의 책임은 투자자 본인에게 있습니다.</span><br>
-            <span style='color:#888; font-size:0.85rem;'>* 시스템 수정 및 기술 문의: 푸른돌디</span>
-        </p>
-    </div>
-""", unsafe_allow_html=True)
+table_rows += f"""
+            <tr style="font-size:0.95rem;">
+                <td style="padding:12px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
+                <td style="padding:12px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; font-size:0.85rem;">{row['참가자']}</td>
+                <td style="padding:12px 10px; border-bottom:1px solid #eee; text-align:center;">
+                    <div style="font-size:1.0rem; font-weight:bold; color:#000; margin-bottom:5px;">{row['종목명']}</div>
+                    
+                    <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
+                        <div style="display:table; width:100%;">
+                            <div style="display:table-row;">
+                                <div style="display:table-cell;">기준가:</div>
+                                <div style="display:table-cell; text-align:right;">{row['기준가']:,.0f}원</div>
+                            </div>
+                            <div style="display:table-row; color:#333; font-weight:bold;">
+                                <div style="display:table-cell;">현재가:</div>
+                                <div style="display:table-cell; text-align:right;">{row['현재가']:,.0f}원</div>
+                            </div>
+                            <div style="display:table-row; {color}">
+                                <div style="display:table-cell;">등락:</div>
+                                <div style="display:table-cell; text-align:right;">{icon}{abs(row['등락']):,.0f}원</div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td class="pc-only" style="padding:15px 5px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
+                <td class="pc-only" style="padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold;">{row['현재가']:,.0f}원</td>
+                <td class="pc-only" style="padding:15px 5px; border-bottom:1px solid #eee; {color} font-weight:bold;">{icon} {abs(row['등락']):,.0f}원</td>
+                <td style="padding:12px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:0.95rem;">
+                    {prefix}{row['수익률']:.2f}%
+                </td>
+            </tr>
+            """
