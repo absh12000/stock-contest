@@ -94,7 +94,7 @@ try:
                     <div style="position: absolute; top: -12px; font-size: 1.3rem; width: 100%; text-align: center;">
                         {medal_icon}
                     </div>
-                    <div style="font-size: 1rem; color: #333; font-weight: bold; margin-top: 5px;">
+                    <div style="font-size: 1rem; color: #333; font-weight: bold; margin-top: 10px;">
                         {rank}위
                     </div>
                 </div>
