@@ -86,25 +86,15 @@ try:
         for i, row in data.iterrows():
             rank = i + 1
             
-            # [최종 교정] 순위 숫자와 이름을 동일 선상에 배치 + 1~3위만 숫자 위에 메달 배치
-medals = {1: "🥇", 2: "🥈", 3: "🥉"}
-medal_icon = medals.get(rank, "")
-
-# 1~3위일 때만 메달을 숫자 위로 띄우는 구조
-rank_html = f"""
-<div style="display: flex; align-items: center; gap: 10px; height: 50px;">
-    <div style="position: relative; width: 45px; display: flex; justify-content: center; align-items: center;">
-        {f'<span style="position: absolute; top: -18px; font-size: 1.3rem; left: 50%; transform: translateX(-50%);">{medal_icon}</span>' if rank <= 3 else ""}
-        <span style="font-size: 1rem; font-weight: bold; color: #333; position: relative; z-index: 1;">
-            {rank}위
-        </span>
-    </div>
-    
-    <div style="font-size: 1.1rem; font-weight: bold; color: #1a3a5f;">
-        {row['참가자']}
-    </div>
-</div>
-"""
+            # [교정본] 중복 else 제거 및 메달/숫자 수직 배치
+            if rank in [1, 2, 3]:
+                medal_icon = ["🥇", "🥈", "🥉"][rank-1]
+                rank_disp = f"""
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;">
+                    <div style="font-size: 1.4rem;">{medal_icon}</div>
+                    <div style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</div>
+                </div>
+                """
             else:
                 rank_disp = f"""
                 <div style="text-align: center; font-size: 1rem; color: #333; font-weight: bold;">
