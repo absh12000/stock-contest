@@ -67,17 +67,15 @@ try:
     today_str = datetime.now().strftime("%Y%m%d")
     effective_end = END_DATE if END_DATE < today_str else today_str
 
-    # [최적화 핵심] 중복된 종목코드를 제거하여 API 호출 횟수 최소화
+    # [최적화] 중복 종목 제거
     unique_tickers = [str(t).strip().split('.')[0].zfill(6) for t in df_list['종목코드'].unique()]
 
-    # [병렬 처리] 일꾼 20명이 동시에 고유 종목의 가격을 수집
+    # [병렬 처리] 일꾼 20명 가동하여 속도 대폭 향상
     with ThreadPoolExecutor(max_workers=20) as executor:
         price_results = list(executor.map(lambda t: fetch_single_ticker_data(t, effective_end), unique_tickers))
 
-    # 가져온 가격 데이터를 매칭하기 편하게 딕셔너리로 변환
     price_map = {res['ticker']: res for res in price_results if res is not None}
 
-    # 전체 명단에 가격 정보 결합
     final_results = []
     for _, row in df_list.iterrows():
         ticker = str(row['종목코드']).strip().split('.')[0].zfill(6)
@@ -111,21 +109,30 @@ try:
             elif row['수익률'] < 0:
                 color = "color:#3498db;" # 파란색
                 change_icon = "▼"
-                rate_prefix = "" # 마이너스 기호는 데이터에 포함됨
+                rate_prefix = "" 
             else:
                 color = "color:#333;"
                 change_icon = ""
                 rate_prefix = ""
 
+            # [최종 디자인] PC 폰트 크기 조정 및 모바일 3줄 상세 레이아웃 통합
             table_rows += f"""
             <tr style='font-size:0.95rem;'>
                 <td style='padding:12px 2px; border-bottom:1px solid #eee; font-weight:bold; white-space:nowrap;'>{rank_disp}</td>
                 <td style='padding:12px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; white-space:nowrap;'>{row['참가자']}</td>
                 <td style='padding:12px 10px; border-bottom:1px solid #eee; text-align:center;'>
-                    <div style='font-size:1.0rem; font-weight:bold; color:#000; white-space:nowrap;'>{row['종목명']}</div>
-                    <div class='mobile-only' style='font-size: 0.75rem; color:#666; margin-top:5px; font-weight:normal;'>
-                        <div style='margin-bottom:2px;'>현재가: {row['현재가']:,.0f}원</div>
-                        <div style='{color}'>기준가대비: {change_icon}{abs(row['등락']):,.0f}원</div>
+                    <div style='font-size:1rem; font-weight:bold; color:#000; white-space:nowrap; margin-bottom:5px;'>{row['종목명']}</div>
+                    
+                    <div class='mobile-only' style='font-size: 0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block;'>
+                        <div style="display: flex; justify-content: space-between; gap: 10px;">
+                            <span>기준가:</span> <span>{row['기준가']:,.0f}원</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; gap: 10px; color:#333; font-weight:bold;">
+                            <span>현재가:</span> <span>{row['현재가']:,.0f}원</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; gap: 10px; {color}">
+                            <span>등락:</span> <span>{change_icon}{abs(row['등락']):,.0f}원</span>
+                        </div>
                     </div>
                 </td>
                 <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; color:#888; white-space:nowrap;'>{row['기준가']:,.0f}원</td>
@@ -177,7 +184,7 @@ st.markdown(f"""
             <p style='font-size:0.95rem; line-height:1.8;'>
                 <b>1. 업데이트 안내</b><br>
 - 본 페이지는 사용자가 <b>새로고침(F5)</b>을 할 때 최신 데이터를 수집합니다.<br>
-- 동일 종목 중복 조회 방지 및 병렬 처리 시스템으로 인원이 많아져도 속도가 빠릅니다.<br><br>
+- 병렬 처리 시스템으로 인원이 많아져도 속도가 빠릅니다.<br><br>
                 <b>2. 데이터 기준</b><br>
                 - 시작일: {BASE_DATE[:4]}. {BASE_DATE[4:6]}. {BASE_DATE[6:]}<br>
                 - 종료일: {END_DATE[:4]}. {END_DATE[4:6]}. {END_DATE[6:]}<br>
