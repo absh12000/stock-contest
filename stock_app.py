@@ -12,7 +12,7 @@ SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=cs
 st.set_page_config(page_title="주식 동행", layout="wide")
 
 # --- [날짜 고정 설정] ---
-BASE_DATE = "20260511" 
+BASE_DATE = "20260504" 
 END_DATE = "20260529"   
 
 @st.cache_data
@@ -85,37 +85,8 @@ try:
         table_rows = ""
         for i, row in data.iterrows():
             rank = i + 1
+            rank_disp = f"🥇 {rank}위" if rank == 1 else (f"🥈 {rank}위" if rank == 2 else (f"🥉 {rank}위" if rank == 3 else f"{rank}위"))
             
-                                        # [교정본] 숫자와 이름을 동일 선상에 맞추고, 메달만 숫자 위에 띄우기
-if rank in [1, 2, 3]:
-    medal_icon = ["🥇", "🥈", "🥉"][rank-1]
-    display_html = f"""
-    <div style="display: flex; align-items: center; justify-content: flex-start; gap: 10px; height: 55px; position: relative;">
-        <div style="position: relative; min-width: 45px; text-align: center;">
-            <span style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 1.3rem;">
-                {medal_icon}
-            </span>
-            <span style="font-size: 1rem; font-weight: bold; color: #333;">{rank}위</span>
-        </div>
-        
-        <div style="font-size: 1.1rem; font-weight: bold; color: #1a3a5f; white-space: nowrap;">
-            {row['참가자']}
-        </div>
-    </div>
-    """
-else:
-    # 4위 이하: 메달 공간을 감안해 높이를 55px로 맞춤 (전체 표의 수평 일치)
-    display_html = f"""
-    <div style="display: flex; align-items: center; justify-content: flex-start; gap: 10px; height: 55px;">
-        <div style="min-width: 45px; text-align: center; font-size: 1rem; font-weight: bold; color: #666;">
-            {rank}위
-        </div>
-        <div style="font-size: 1.1rem; font-weight: bold; color: #1a3a5f;">
-            {row['참가자']}
-        </div>
-    </div>
-    """
-
             # 색상/기호 로직
             if row['수익률'] > 0:
                 color, icon, prefix = "color:#e74c3c;", "▲", "+"
@@ -202,4 +173,3 @@ st.markdown(f"""
 </p>
 </div>
 """, unsafe_allow_html=True)
-
