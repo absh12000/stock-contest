@@ -86,28 +86,34 @@ try:
         for i, row in data.iterrows():
             rank = i + 1
             
-                        # 1. 메달 부품 준비 (1, 2, 3위만 해당, 나머지는 투명하게 처리)
-medal_html = ""
-if rank == 1: medal_html = '<span style="position: absolute; top: -18px; font-size: 1.3rem;">🥇</span>'
-elif rank == 2: medal_html = '<span style="position: absolute; top: -18px; font-size: 1.3rem;">🥈</span>'
-elif rank == 3: medal_html = '<span style="position: absolute; top: -18px; font-size: 1.3rem;">🥉</span>'
+                                try:
+            # 1. 1~3위 메달 설정 (나머지는 빈 값)
+            medal_html = ""
+            if rank == 1: medal_html = '<span style="position: absolute; top: -18px; font-size: 1.3rem;">🥇</span>'
+            elif rank == 2: medal_html = '<span style="position: absolute; top: -18px; font-size: 1.3rem;">🥈</span>'
+            elif rank == 3: medal_html = '<span style="position: absolute; top: -18px; font-size: 1.3rem;">🥉</span>'
 
-# 2. 통합 조립 (모든 순위가 동일한 로직을 탑니다)
-rank_disp = f"""
-<div style="display: flex; align-items: baseline; justify-content: flex-start; gap: 10px; height: 40px;">
-    <div style="position: relative; min-width: 45px; text-align: center;">
-        {medal_html}
-        <span style="font-size: 1rem; font-weight: bold; color: { '#333' if rank <= 3 else '#666' };">
-            {rank}위
-        </span>
-    </div>
-    
-    <div style="font-size: 1.1rem; font-weight: bold; color: #1a3a5f;">
-        {participant_name}
-    </div>
-</div>
-"""
+            # 2. 통합 조립 (모든 순위 공용 틀)
+            rank_disp = f"""
+            <div style="display: flex; align-items: baseline; justify-content: flex-start; gap: 10px; height: 40px;">
+                <div style="position: relative; min-width: 45px; text-align: center;">
+                    {medal_html}
+                    <span style="font-size: 1rem; font-weight: bold; color: { '#333' if rank <= 3 else '#666' };">
+                        {rank}위
+                    </span>
+                </div>
+                <div style="font-size: 1.1rem; font-weight: bold; color: #1a3a5f;">
+                    {participant_name}
+                </div>
+            </div>
+            """
             
+        except Exception as e:
+            # 에러 발생 시 처리 (이 부분이 없어서 에러가 났던 겁니다)
+            rank_disp = f"<div>{rank}위</div>"
+            print(f"에러 발생: {e}")
+
+
             # 색상/기호 로직
             if row['수익률'] > 0:
                 color, icon, prefix = "color:#e74c3c;", "▲", "+"
