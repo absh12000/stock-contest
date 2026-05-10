@@ -85,7 +85,22 @@ try:
         table_rows = ""
         for i, row in data.iterrows():
             rank = i + 1
-            rank_disp = f"🥇 {rank}위" if rank == 1 else (f"🥈 {rank}위" if rank == 2 else (f"🥉 {rank}위" if rank == 3 else f"{rank}위"))
+            
+            # 메달을 숫자 위로 겹치게 배치하는 레이아웃
+            if rank in [1, 2, 3]:
+                medal = ["🥇", "🥈", "🥉"][rank-1]
+                rank_disp = f"""
+                <div style="position: relative; display: inline-block; width: 100%;">
+                    <div style="font-size: 1.1rem; font-weight: bold; color: #333; position: relative; z-index: 1; padding-top: 5px;">
+                        {rank}위
+                    </div>
+                    <div style="position: absolute; top: -8px; left: -2px; font-size: 1.3rem; z-index: 2; filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.2));">
+                        {medal}
+                    </div>
+                </div>
+                """
+            else:
+                rank_disp = f"<div style='font-weight:bold; color:#666;'>{rank}위</div>"
             
             # 색상/기호 로직
             if row['수익률'] > 0:
