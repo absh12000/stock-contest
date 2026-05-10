@@ -86,17 +86,19 @@ try:
         for i, row in data.iterrows():
             rank = i + 1
             
-            # 메달을 숫자 위로 겹치게 배치하는 레이아웃
+           # [교정본] 메달을 숫자 위 정중앙에 배치 (가독성 최적화)
             if rank in [1, 2, 3]:
-                medal = ["🥇", "🥈", "🥉"][rank-1]
+                medal_icon = ["🥇", "🥈", "🥉"][rank-1]
                 rank_disp = f"""
-                <div style="position: relative; display: inline-block; width: 100%;">
-                    <div style="font-size: 1.1rem; font-weight: bold; color: #333; position: relative; z-index: 1; padding-top: 5px;">
-                        {rank}위
-                    </div>
-                    <div style="position: absolute; top: -8px; left: -2px; font-size: 1.3rem; z-index: 2; filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.2));">
-                        {medal}
-                    </div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1;">
+                    <div style="font-size: 1.4rem; margin-bottom: 2px;">{medal_icon}</div>
+                    <div style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</div>
+                </div>
+                """
+            else:
+                rank_disp = f"""
+                <div style="text-align: center; font-size: 1rem; color: #333; font-weight: bold;">
+                    {rank}위
                 </div>
                 """
             else:
