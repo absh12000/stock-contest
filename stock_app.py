@@ -35,6 +35,21 @@ def fetch_single_ticker_data(ticker, effective_end):
 # 상단 타이틀
 st.title("🧭 주식 동행")
 
+st.markdown(f"""
+    <div style='padding:20px; background-color:#ffffff; border-radius:15px; border:1px solid #dee2e6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom:20px;'>
+        <h4 style='color:#1a3a5f; margin-top:0; font-size:1.2rem;'>🧭 주식 동행 : 실전 정보 상황판</h4>
+        <p style='color:#333; font-size:1rem; line-height:1.6;'>
+            <span style='font-weight:bold; font-size:1.05rem;'> "나누는 지식은 투자의 눈을 밝히고,<br>함께하는 동행은 수익의 뿌리를 깊게 합니다."</span><br>
+            <span style='color:#666; font-size:0.9rem;'>{BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]}부터 현재까지의 기록입니다.</span>
+        </p>
+        <div style='border-top:1px solid #eee; padding-top:10px; margin-top:10px;'>
+            <p style='color:#e74c3c; font-size:0.85rem; font-weight:bold; margin-bottom:0;'>
+                ⚠️ [주의] 본 데이터는 정보 공유용이며, 모든 투자의 책임은 본인에게 있습니다.
+            </p>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
 try:
     df_list = pd.read_csv(SHEET_URL)
     df_list.columns = df_list.columns.str.strip()
@@ -131,3 +146,21 @@ try:
         st.success(f"✅ 데이터 반영 완료 ({last_date})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
+
+st.markdown("---")
+st.markdown(f"""
+    <div style='background-color:#f1f3f5; padding:20px; border-radius:15px; border-left:5px solid #1a3a5f;'>
+            <h3 style='color:#1a3a5f; margin-top:0;'>📖 사용 설명서</h3>
+            <p style='font-size:0.95rem; line-height:1.8;'>
+                <b>1. 업데이트 안내</b><br>
+- 본 페이지는 사용자가 <b>새로고침(F5)</b>을 할 때 최신 데이터를 수집합니다.<br>
+- 동일 종목 중복 조회 방지 및 병렬 처리 시스템으로 인원이 많아져도 속도가 빠릅니다.<br><br>
+                <b>2. 데이터 기준</b><br>
+                - 시작일: {BASE_DATE[:4]}. {BASE_DATE[4:6]}. {BASE_DATE[6:]}<br>
+                - 종료일: {END_DATE[:4]}. {END_DATE[4:6]}. {END_DATE[6:]}<br>
+                <b>3. 순위 산정</b><br>
+                기준일 대비 현재가의 수익률로 실시간 순위가 결정됩니다.<br><br>
+                <span style='color:#777;'>* 수정 문의: 푸른돌디</span>
+        </p>
+    </div>
+""", unsafe_allow_html=True)
