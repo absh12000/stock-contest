@@ -101,7 +101,7 @@ try:
                 <td style="padding:12px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
                 <td style="padding:12px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
                 <td style="padding:12px 10px; border-bottom:1px solid #eee; text-align:center;">
-                    <div style="font-size:1.02rem; font-weight:bold; color:#000; margin-bottom:5px;">{row['종목명']}</div>
+                    <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px;">{row['종목명']}</div>
                     <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
                         <div style="display:table; width:100%;">
                             <div style="display:table-row;"><div style="display:table-cell;">기준가:</div><div style="display:table-cell; text-align:right;">{row['기준가']:,.0f}원</div></div>
