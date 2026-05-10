@@ -13,7 +13,7 @@ st.set_page_config(page_title="주식 동행", layout="wide")
 
 # --- [날짜 고정 설정] ---
 BASE_DATE = "20260504" 
-END_DATE = "20260529"    
+END_DATE = "20260529"   
 
 @st.cache_data
 def get_safe_price(ticker, target_date):
@@ -85,12 +85,7 @@ try:
         table_rows = ""
         for i, row in data.iterrows():
             rank = i + 1
-            
-            # [수정] 1~3위 머리 위 메달 로직 (나머지 순위는 숫자만 유지)
-            medal_html = ""
-            if rank == 1: medal_html = '<span style="position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.3rem;">🥇</span>'
-            elif rank == 2: medal_html = '<span style="position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.3rem;">🥈</span>'
-            elif rank == 3: medal_html = '<span style="position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.3rem;">🥉</span>'
+            rank_disp = f"🥇 {rank}위" if rank == 1 else (f"🥈 {rank}위" if rank == 2 else (f"🥉 {rank}위" if rank == 3 else f"{rank}위"))
             
             # 색상/기호 로직
             if row['수익률'] > 0:
@@ -100,18 +95,11 @@ try:
             else:
                 color, icon, prefix = "color:#333;", "", ""
 
-            # [수평 정렬 조립] 7개의 <td> 칸을 사장님 원본 규격대로 유지
+            # [수정 핵심] PC는 1.0rem 유지, 모바일만 상세 3줄(기준가/현재가/등락)로 배치
             table_rows += f"""
             <tr style="font-size:0.95rem;">
-                <td style="padding:15px 2px 10px 2px; border-bottom:1px solid #eee; text-align:center; vertical-align:middle;">
-                    <div style="position: relative; display: inline-block; min-width: 45px;">
-                        {medal_html}
-                        <span style="font-size: 1rem; font-weight: bold; color: {'#333' if rank <= 3 else '#666'}; line-height: 1;">
-                            {rank}위
-                        </span>
-                    </div>
-                </td>
-                <td style="padding:15px 5px 10px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; vertical-align:middle; text-align:center;">{row['참가자']}</td>
+                <td style="padding:12px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
+                <td style="padding:12px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
                 <td style="padding:12px 10px; border-bottom:1px solid #eee; text-align:center;">
                     <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px;">{row['종목명']}</div>
                     <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
