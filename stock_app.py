@@ -151,27 +151,28 @@ st.markdown("---")
 st.markdown(f"""
     <div style='background-color:#ffffff; padding:25px; border-radius:10px; border:1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.05);'>
         <h3 style='color:#1a3a5f; margin-top:0; margin-bottom:20px; border-bottom:2px solid #1a3a5f; padding-bottom:10px;'>🧭 데이터 산출 가이드</h3>
-        <p style='font-size:0.95rem; line-height:1.8; color:#333;'>
+        <p style='font-size:0.95rem; line-height:1.8; color:#333; margin:0;'>
             <b>1. 데이터 기준 및 출처</b><br>
             - 본 시스템은 <b>한국거래소(KRX)</b>의 시장 정보를 실시간으로 참조합니다.<br>
             - 자료 출처: KRX(한국거래소) 정보데이터시스템<br><br>
-            
             <b>2. 휴일 및 비영업일 데이터 반영</b><br>
             - 한국거래소 휴장일(토, 일, 공휴일)에는 시장 데이터가 업데이트되지 않습니다.<br>
             - 따라서 휴일에는 <b>직전 거래일의 최종 종가</b>를 기준으로 데이터가 산출됩니다.<br>
-            - 반영 기간: 2026.05.04 ~ 2026.05.29<br><br>
-
+            - 데이터 반영 기간: {BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]} ~ {END_DATE[:4]}.{END_DATE[4:6]}.{END_DATE[6:]}<br><br>
             <b>3. 장중 데이터와 장마감 데이터의 차이</b><br>
             - <b>장중 (09:00~15:30):</b> 현재 접속 시점의 실시간 체결가를 바탕으로 수익률을 계산합니다.<br>
             - <b>장마감 후:</b> 당일 최종 확정된 종가(Final Closing Price)를 기준으로 데이터가 고정됩니다.<br><br>
-
             <b>4. 실시간 데이터 오차 안내</b><br>
             - 시스템 특성상 API 수집 과정에서 <b>약 1분~20분 정도의 시세 지연</b>이 발생할 수 있습니다.<br>
             - 장중 변동성이 극심한 시점에는 HTS/MTS 실시간 호가와 본 페이지 수치에 다소 오차가 있을 수 있으므로 참고용으로 활용해 주시기 바랍니다.<br><br>
-            
             <b>5. 업데이트 및 순위 산정</b><br>
             - 본 페이지는 사용자가 <b>새로고침(F5)</b>을 할 때 최신 데이터를 수집하여 반영합니다.<br>
             - 시작일 기준가 대비 현재가 수익률로 실시간 순위가 결정됩니다.<br><br>
+            <span style='color:#e74c3c; font-weight:bold;'>⚠️ [주의] 본 데이터는 정보 공유를 목적으로 하며, 모든 투자의 책임은 투자자 본인에게 있습니다.</span><br>
+            <span style='color:#888; font-size:0.85rem; display:block; margin-top:10px;'>* 시스템 수정 및 기술 문의: 푸른돌디</span>
+        </p>
+    </div>
+""", unsafe_allow_html=True)
             
             <span style='color:#e74c3c; font-weight:bold;'>⚠️ [주의] 본 데이터는 정보 공유를 목적으로 하며, 모든 투자의 책임은 투자자 본인에게 있습니다.</span><br>
             <span style='color:#888; font-size:0.85rem; display:block; margin-top:10px;'>* 시스템 수정 및 기술 문의: 푸른돌디</span>
