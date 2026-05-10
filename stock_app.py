@@ -86,28 +86,25 @@ try:
         for i, row in data.iterrows():
             rank = i + 1
             
-            # [최종 교정] 숫자와 이름의 바닥 수평 라인을 100% 일치시킴
-if rank in [1, 2, 3]:
-    medal_icon = ["🥇", "🥈", "🥉"][rank-1]
-    rank_disp = f"""
-    <div style="display: flex; align-items: baseline; justify-content: center; position: relative; height: 50px;">
-        <span style="position: absolute; top: -5px; left: 50%; transform: translateX(-50%); font-size: 1.4rem;">
-            {medal_icon}
-        </span>
-        <span style="font-size: 1rem; color: #333; font-weight: bold; margin-top: 25px;">
-            {rank}위
-        </span>
-    </div>
-    """
-else:
-    # 4위 이하: 1~3위와 동일한 여백을 줘서 수평 라인 통일
-    rank_disp = f"""
-    <div style="display: flex; align-items: baseline; justify-content: center; height: 50px;">
-        <span style="font-size: 1rem; color: #666; font-weight: bold; margin-top: 25px;">
-            {rank}위
-        </span>
-    </div>
-    """
+                        # [최종 교정] 메달은 공중에 띄우고 숫자와 이름 라인은 칼같이 일치
+            if rank in [1, 2, 3]:
+                medal_icon = ["🥇", "🥈", "🥉"][rank-1]
+                rank_disp = f"""
+                <div style="position: relative; display: flex; align-items: center; justify-content: center; height: 40px; width: 100%;">
+                    <div style="position: absolute; top: -12px; font-size: 1.3rem; width: 100%; text-align: center;">
+                        {medal_icon}
+                    </div>
+                    <div style="font-size: 1rem; color: #333; font-weight: bold; margin-top: 10px;">
+                        {rank}위
+                    </div>
+                </div>
+                """
+            else:
+                rank_disp = f"""
+                <div style="display: flex; align-items: center; justify-content: center; height: 40px; font-size: 1rem; color: #333; font-weight: bold; margin-top: 10px;">
+                    {rank}위
+                </div>
+                """
             
             # 색상/기호 로직
             if row['수익률'] > 0:
