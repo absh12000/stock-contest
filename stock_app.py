@@ -83,9 +83,35 @@ try:
         last_date = data['최종날짜'].iloc[0]
         
         table_rows = ""
-        for i, row in data.iterrows():
-            rank = i + 1
-            rank_disp = f"🥇 {rank}위" if rank == 1 else (f"🥈 {rank}위" if rank == 2 else (f"🥉 {rank}위" if rank == 3 else f"{rank}위"))
+# [교정본] 숫자와 이름은 바닥 라인을 맞추고, 메달은 공중에 띄우는 방식
+if rank in [1, 2, 3]:
+    medal_icon = ["🥇", "🥈", "🥉"][rank-1]
+    display_html = f"""
+    <div style="display: flex; align-items: baseline; justify-content: flex-start; gap: 10px; height: 35px;">
+        <div style="position: relative; min-width: 45px; text-align: center;">
+            <span style="position: absolute; left: 50%; transform: translateX(-50%); top: -20px; font-size: 1.3rem;">
+                {medal_icon}
+            </span>
+            <span style="font-size: 1rem; font-weight: bold; color: #333;">{rank}위</span>
+        </div>
+        
+        <div style="font-size: 1.1rem; font-weight: bold; color: #1a3a5f; white-space: nowrap;">
+            {row['참가자']}
+        </div>
+    </div>
+    """
+else:
+    # 4위 이하: 메달 없이 숫자와 이름 수평 정렬
+    display_html = f"""
+    <div style="display: flex; align-items: baseline; justify-content: flex-start; gap: 10px; height: 35px;">
+        <div style="min-width: 45px; text-align: center; font-size: 1rem; font-weight: bold; color: #666;">
+            {rank}위
+        </div>
+        <div style="font-size: 1.1rem; font-weight: bold; color: #1a3a5f;">
+            {row['참가자']}
+        </div>
+    </div>
+    """
             
             # 색상/기호 로직
             if row['수익률'] > 0:
