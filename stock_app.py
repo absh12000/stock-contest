@@ -12,7 +12,7 @@ SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=cs
 st.set_page_config(page_title="주식 동행", layout="wide")
 
 # --- [날짜 고정 설정] ---
-BASE_DATE = "20260511" 
+BASE_DATE = "20260111" 
 END_DATE = "20260529"   
 
 # [수동 새로고침 설정] 캐시 시간 제한(ttl)을 없애서 새로고침 시에만 업데이트
