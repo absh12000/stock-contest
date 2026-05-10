@@ -122,18 +122,10 @@ try:
                 <td style='padding:12px 2px; border-bottom:1px solid #eee; font-weight:bold; white-space:nowrap;'>{rank_disp}</td>
                 <td style='padding:12px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; white-space:nowrap;'>{row['참가자']}</td>
                 <td style='padding:12px 10px; border-bottom:1px solid #eee; text-align:center;'>
-                    <div style='font-size:1rem; font-weight:bold; color:#000; white-space:nowrap; margin-bottom:5px;'>{row['종목명']}</div>
-                    
-                    <div class='mobile-only' style='font-size: 0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;'>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>기준가:</span> <span>{row['기준가']:,.0f}원</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; color:#333; font-weight:bold;">
-                            <span>현재가:</span> <span>{row['현재가']:,.0f}원</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; {color}">
-                            <span>등락금:</span> <span>{change_icon}{abs(row['등락']):,.0f}원</span>
-                        </div>
+                    <div style='font-size:1.0rem; font-weight:bold; color:#000; white-space:nowrap;'>{row['종목명']}</div>
+                    <div class='mobile-only' style='font-size: 0.75rem; color:#666; margin-top:5px; font-weight:normal;'>
+                        <div style='margin-bottom:2px;'>현재가: {row['현재가']:,.0f}원</div>
+                        <div style='{color}'>기준가대비: {change_icon}{abs(row['등락']):,.0f}원</div>
                     </div>
                 </td>
                 <td class='pc-only' style='padding:15px 5px; border-bottom:1px solid #eee; color:#888; white-space:nowrap;'>{row['기준가']:,.0f}원</td>
