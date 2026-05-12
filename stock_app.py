@@ -3,6 +3,7 @@ from pykrx import stock
 import pandas as pd
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
+import FinanceDataReader as fdr  # 네이버 엔진 추가
 
 # 1. 구글 시트 ID 설정
 SHEET_ID = "1qY0Z-Mzny61lk4TfO0FNoYF870ve3sI5SbDA4jS5M0Y"
@@ -16,14 +17,34 @@ BASE_DATE = "20260511"
 END_DATE = "20260529"    
 
 @st.cache_data
-def get_safe_price(ticker, target_date):
-    dt = datetime.strptime(target_date, "%Y%m%d")
-    for i in range(10):
-        check_date = (dt - timedelta(days=i)).strftime("%Y%m%d")
-        df = stock.get_market_ohlcv(check_date, check_date, ticker)
+def get_pure_closing_price(ticker, target_date):
+    """[수정] 네이버 엔진을 사용하여 정규장(15:30) 종가만 가져오는 부품"""
+    try:
+        df = fdr.DataReader(ticker, target_date, target_date)
         if not df.empty:
-            return df['종가'].iloc[-1], check_date
+            return int(df['Close'].iloc[-1]), target_date
+        
+        # 데이터가 아직 없으면 직전 7일 중 최신 데이터 탐색
+        df_prev = fdr.DataReader(ticker, (datetime.now() - timedelta(days=7)).strftime("%Y%m%d"), target_date)
+        if not df_prev.empty:
+            return int(df_prev['Close'].iloc[-1]), df_prev.index[-1].strftime("%Y%m%d")
+    except:
+        pass
     return None, None
+
+def get_realtime_price(ticker):
+    """[수정] 네이버 엔진을 사용한 장중 실시간 시세 (장외 배제)"""
+    try:
+        today_str = datetime.now().strftime("%Y%m%d")
+        df = fdr.DataReader(ticker, today_str)
+        if not df.empty:
+            return int(df['Close'].iloc[-1])
+        else:
+            # 장 시작 전이면 직전 종가 활용
+            df_yest = fdr.DataReader(ticker, (datetime.now() - timedelta(days=5)).strftime("%Y%m%d"))
+            return int(df_yest['Close'].iloc[-1])
+    except:
+        return None
 
 @st.cache_data
 def get_stock_name_auto(ticker):
@@ -34,22 +55,31 @@ def get_stock_name_auto(ticker):
     except:
         return "코드오류"
 
-def fetch_single_ticker_data(ticker, effective_end):
-    base_p, _ = get_safe_price(ticker, BASE_DATE)
-    curr_p, last_date = get_safe_price(ticker, effective_end)
-    auto_name = get_stock_name_auto(ticker) # 이름 자동 찾기 추가
+def fetch_single_ticker_data(ticker):
+    """[수정] 엔진 교체에 따른 데이터 수집 로직 최적화"""
+    # 기준가는 정규장 마감 종가(15:30)로 고정
+    base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
+    # 현재가는 실시간 변동성 반영
+    curr_p = get_realtime_price(ticker)
+    auto_name = get_stock_name_auto(ticker)
+    
     if base_p and curr_p:
         return {
             'ticker': ticker, 
             '기준가': base_p, 
             '현재가': curr_p, 
-            '최종날짜': last_date,
+            '최종날짜': datetime.now().strftime("%Y.%m.%d %H:%M"),
             'auto_name': auto_name
         }
     return None
 
 # 상단 타이틀
 st.title("🧭 주식 동행")
+
+# [추가] 실시간 갱신 버튼
+if st.button('🔄 실시간 시세 갱신'):
+    st.cache_data.clear()
+    st.rerun()
 
 st.markdown(f"""
     <div style='padding:20px; background-color:#ffffff; border-radius:15px; border:1px solid #dee2e6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom:20px;'>
@@ -71,12 +101,11 @@ try:
     df_list.columns = df_list.columns.str.strip()
     df_list = df_list.dropna(subset=['종목코드', '참가자'])
     
-    today_str = datetime.now().strftime("%Y%m%d")
-    effective_end = END_DATE if END_DATE < today_str else today_str
     unique_tickers = [str(t).strip().split('.')[0].zfill(6) for t in df_list['종목코드'].unique()]
 
     with ThreadPoolExecutor(max_workers=20) as executor:
-        price_results = list(executor.map(lambda t: fetch_single_ticker_data(t, effective_end), unique_tickers))
+        # [수정] fetch_single_ticker_data 호출 방식 변경
+        price_results = list(executor.map(fetch_single_ticker_data, unique_tickers))
 
     price_map = {res['ticker']: res for res in price_results if res is not None}
 
@@ -85,7 +114,6 @@ try:
         ticker = str(row['종목코드']).strip().split('.')[0].zfill(6)
         p_data = price_map.get(ticker)
         if p_data:
-            # 시트에 종목명이 비어있으면 자동으로 가져온 이름 사용
             raw_name = row.get('종목명', "")
             display_name = raw_name if pd.notna(raw_name) and str(raw_name).strip() != "" else p_data['auto_name']
             
@@ -99,18 +127,13 @@ try:
             })
 
     if final_results:
-        # 데이터 정렬
         data = pd.DataFrame(final_results).sort_values(by='수익률', ascending=False).reset_index(drop=True)
         last_date = data['최종날짜'].iloc[0]
         
-        # --- [공동 순위 로직 시작] ---
-        # 수익률 기준 공동 순위 산정 (동일 수익률은 동일 순위, 다음은 인원수만큼 건너뜀)
         data['rank'] = data['수익률'].rank(method='min', ascending=False).astype(int)
-        # --- [공동 순위 로직 끝] ---
         
         table_rows = ""
         for i, row in data.iterrows():
-            # i+1 대신 계산된 공동 순위 사용
             rank = row['rank'] 
             
             if rank in [1, 2, 3]:
@@ -132,7 +155,6 @@ try:
                 </span>
                 """
             
-            # 색상/기호 로직
             if row['수익률'] > 0:
                 color, icon, prefix = "color:#e74c3c;", "▲", "+"
             elif row['수익률'] < 0:
@@ -140,7 +162,6 @@ try:
             else:
                 color, icon, prefix = "color:#333;", "", ""
 
-            # [수정 핵심] PC는 1.0rem 유지, 모바일만 상세 3줄(기준가/현재가/등락)로 배치
             table_rows += f"""
             <tr style="font-size:0.95rem;">
                 <td style="padding:7px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
@@ -191,8 +212,6 @@ try:
         st.success(f"✅ 데이터 반영 완료 ({last_date})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
-
-# (하단 가이드 생략)
 
 st.markdown("---")
 st.markdown(f"""
