@@ -3,7 +3,7 @@ from pykrx import stock
 import pandas as pd
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
-import FinanceDataReader as fdr  # 네이버 엔진 추가
+import FinanceDataReader as fdr  # 네이버 엔진
 
 # 1. 구글 시트 ID 설정
 SHEET_ID = "1qY0Z-Mzny61lk4TfO0FNoYF870ve3sI5SbDA4jS5M0Y"
@@ -16,15 +16,14 @@ st.set_page_config(page_title="주식 동행", layout="wide")
 BASE_DATE = "20260511" 
 END_DATE = "20260529"    
 
-@st.cache_data
+@st.cache_data(ttl=60) # 1분마다 캐시를 자동 만료시켜 데이터가 멈추지 않게 합니다.
 def get_pure_closing_price(ticker, target_date):
-    """[수정] 네이버 엔진을 사용하여 정규장(15:30) 종가만 가져오는 부품"""
+    """장외 거래를 제외한 정규장(15:30) 종가만 가져오는 부품"""
     try:
         df = fdr.DataReader(ticker, target_date, target_date)
         if not df.empty:
             return int(df['Close'].iloc[-1]), target_date
         
-        # 데이터가 아직 없으면 직전 7일 중 최신 데이터 탐색
         df_prev = fdr.DataReader(ticker, (datetime.now() - timedelta(days=7)).strftime("%Y%m%d"), target_date)
         if not df_prev.empty:
             return int(df_prev['Close'].iloc[-1]), df_prev.index[-1].strftime("%Y%m%d")
@@ -33,14 +32,13 @@ def get_pure_closing_price(ticker, target_date):
     return None, None
 
 def get_realtime_price(ticker):
-    """[수정] 네이버 엔진을 사용한 장중 실시간 시세 (장외 배제)"""
+    """장중 실시간 시세 부품 (네이버 기반)"""
     try:
         today_str = datetime.now().strftime("%Y%m%d")
         df = fdr.DataReader(ticker, today_str)
         if not df.empty:
             return int(df['Close'].iloc[-1])
         else:
-            # 장 시작 전이면 직전 종가 활용
             df_yest = fdr.DataReader(ticker, (datetime.now() - timedelta(days=5)).strftime("%Y%m%d"))
             return int(df_yest['Close'].iloc[-1])
     except:
@@ -48,7 +46,7 @@ def get_realtime_price(ticker):
 
 @st.cache_data
 def get_stock_name_auto(ticker):
-    """종목코드로 이름을 자동 검색하는 부품"""
+    """종목명 자동 검색"""
     try:
         name = stock.get_market_ticker_name(ticker)
         return name if name else "종목정보없음"
@@ -56,19 +54,20 @@ def get_stock_name_auto(ticker):
         return "코드오류"
 
 def fetch_single_ticker_data(ticker):
-    """[수정] 엔진 교체에 따른 데이터 수집 로직 최적화"""
-    # 기준가는 정규장 마감 종가(15:30)로 고정
+    """[핵심 수정] 호출될 때마다 시간을 새로 찍어 데이터 고착을 방지합니다."""
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
-    # 현재가는 실시간 변동성 반영
     curr_p = get_realtime_price(ticker)
     auto_name = get_stock_name_auto(ticker)
+    
+    # 현재 시각을 초 단위까지 새로 고침
+    current_refresh_time = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
     
     if base_p and curr_p:
         return {
             'ticker': ticker, 
             '기준가': base_p, 
             '현재가': curr_p, 
-            '최종날짜': datetime.now().strftime("%Y.%m.%d %H:%M"),
+            '최종날짜': current_refresh_time, 
             'auto_name': auto_name
         }
     return None
@@ -76,21 +75,21 @@ def fetch_single_ticker_data(ticker):
 # 상단 타이틀
 st.title("🧭 주식 동행")
 
-# [추가] 실시간 갱신 버튼
+# 실시간 갱신 버튼
 if st.button('🔄 실시간 시세 갱신'):
     st.cache_data.clear()
     st.rerun()
 
 st.markdown(f"""
     <div style='padding:20px; background-color:#ffffff; border-radius:15px; border:1px solid #dee2e6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom:20px;'>
-        <h4 style='color:#1a3a5f; margin-top:0; font-size:1.2rem;'>🧭 주식 동행 : 실전 정보 상황판</h4>
+        <h4 style='color:#1a3a5f; margin-top:0; font-size:1.2rem;'>🧭 주식 동행 : 실전 정보 상황판 (네이버 금융)</h4>
         <p style='color:#333; font-size:1rem; line-height:1.6;'>
             <span style='font-weight:bold; font-size:1.05rem;'> "나누는 지식은 투자의 눈을 밝히고,<br>함께하는 동행은 수익의 뿌리를 깊게 합니다."</span><br>
             <span style='color:#666; font-size:0.9rem;'>{BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]}부터 현재까지의 기록입니다.</span>
         </p>
         <div style='border-top:1px solid #eee; padding-top:10px; margin-top:10px;'>
             <p style='color:#e74c3c; font-size:0.85rem; font-weight:bold; margin-bottom:0;'>
-                ⚠️ [주의] 본 데이터는 정보 공유용이며, 모든 투자의 책임은 본인에게 있습니다.
+                ⚠️ [주의] 본 데이터는 네이버 금융 정보를 기반으로 한 정보 공유용이며, 모든 투자의 책임은 본인에게 있습니다.
             </p>
         </div>
     </div>
@@ -104,7 +103,6 @@ try:
     unique_tickers = [str(t).strip().split('.')[0].zfill(6) for t in df_list['종목코드'].unique()]
 
     with ThreadPoolExecutor(max_workers=20) as executor:
-        # [수정] fetch_single_ticker_data 호출 방식 변경
         price_results = list(executor.map(fetch_single_ticker_data, unique_tickers))
 
     price_map = {res['ticker']: res for res in price_results if res is not None}
@@ -129,38 +127,20 @@ try:
     if final_results:
         data = pd.DataFrame(final_results).sort_values(by='수익률', ascending=False).reset_index(drop=True)
         last_date = data['최종날짜'].iloc[0]
-        
         data['rank'] = data['수익률'].rank(method='min', ascending=False).astype(int)
         
         table_rows = ""
         for i, row in data.iterrows():
             rank = row['rank'] 
-            
             if rank in [1, 2, 3]:
                 medal_icon = ["🥇", "🥈", "🥉"][rank-1]
-                rank_disp = f"""
-                <div style="position: relative; display: inline-block; width: 45px; text-align: center;">
-                    <span style="font-size: 1rem; color: #333; font-weight: bold; position: relative; z-index: 1;">
-                        {rank}위
-                    </span>
-                    <span style="font-size: 1.35rem; position: absolute; top: -28px; left: 10px; z-index: 2; opacity: 0.85;">
-                        {medal_icon}
-                    </span>
-                </div>
-                """
+                rank_disp = f'<div style="position: relative; display: inline-block; width: 45px; text-align: center;"><span style="font-size: 1rem; color: #333; font-weight: bold; position: relative; z-index: 1;">{rank}위</span><span style="font-size: 1.35rem; position: absolute; top: -28px; left: 10px; z-index: 2; opacity: 0.85;">{medal_icon}</span></div>'
             else:
-                rank_disp = f"""
-                <span style="font-size: 1rem; color: #333; font-weight: bold;">
-                    {rank}위
-                </span>
-                """
+                rank_disp = f'<span style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</span>'
             
-            if row['수익률'] > 0:
-                color, icon, prefix = "color:#e74c3c;", "▲", "+"
-            elif row['수익률'] < 0:
-                color, icon, prefix = "color:#3498db;", "▼", ""
-            else:
-                color, icon, prefix = "color:#333;", "", ""
+            if row['수익률'] > 0: color, icon, prefix = "color:#e74c3c;", "▲", "+"
+            elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
+            else: color, icon, prefix = "color:#333;", "", ""
 
             table_rows += f"""
             <tr style="font-size:0.95rem;">
@@ -209,7 +189,7 @@ try:
                 </table>
             </div>
         """, unsafe_allow_html=True)
-        st.success(f"✅ 데이터 반영 완료 ({last_date})")
+        st.success(f"✅ 네이버 금융 시세 반영 완료 ({last_date})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
 
@@ -219,21 +199,18 @@ st.markdown(f"""
 <h3 style='color:#1a3a5f; margin-top:0; margin-bottom:20px; border-bottom:2px solid #1a3a5f; padding-bottom:10px;'>🧭 데이터 산출 가이드</h3>
 <p style='font-size:0.95rem; line-height:1.8; color:#333; margin:0;'>
 <b>1. 데이터 기준 및 출처</b><br>
-- 본 시스템은 한국거래소(KRX)의 시장 정보를 실시간으로 참조합니다.<br>
-- 자료 출처: KRX(한국거래소) 정보데이터시스템<br><br>
+- 본 시스템은 네이버 금융(Naver Finance)의 시장 정보를 실시간으로 참조합니다.<br>
+- 자료 출처: 네이버 금융 정보 서비스<br><br>
 <b>2. 휴일 및 비영업일 데이터 반영</b><br>
-- 한국거래소 휴장일(토, 일, 공휴일)에는 시장 데이터가 업데이트되지 않습니다.<br>
-- 따라서 휴일에는 직전 거래일의 최종 종가를 기준으로 데이터가 산출됩니다.<br>
+- 시장 휴장일(토, 일, 공휴일)에는 데이터가 업데이트되지 않으며, 직전 거래일 종가로 산출됩니다.<br>
 - 반영 기간: {BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]} ~ {END_DATE[:4]}.{END_DATE[4:6]}.{END_DATE[6:]}<br><br>
 <b>3. 장중 데이터와 장마감 데이터의 차이</b><br>
-- 장중(09:00~15:30): 현재 접속 시점의 실시간 체결가를 바탕으로 수익률을 계산합니다.<br>
-- 장마감 후: 당일 최종 확정된 종가(Final Closing Price)를 기준으로 데이터가 고정됩니다.<br><br>
+- 장중(09:00~15:30): 네이버 금융 실시간 시세를 바탕으로 수익률을 계산합니다.<br>
+- 장마감 후: 당일 최종 확정된 정규장 종가(15:30)를 기준으로 데이터가 고정됩니다.<br><br>
 <b>4. 실시간 데이터 오차 안내</b><br>
-- 시스템 특성상 API 수집 과정에서 약 1분~20분 정도의 시세 지연이 발생할 수 있습니다.<br>
-- 장중 변동성이 극심한 시점에는 HTS/MTS 실시간 호가와 수치에 다소 오차가 있을 수 있습니다.<br><br>
+- 네이버 시스템과 실제 HTS 간에는 약 수 초에서 수 분의 시차가 발생할 수 있습니다.<br><br>
 <b>5. 업데이트 및 순위 산정</b><br>
-- 본 페이지는 사용자가 새로고침(F5)을 할 때 최신 데이터를 수집하여 반영합니다.<br>
-- 시작일 기준가 대비 현재가 수익률로 실시간 순위가 결정됩니다.<br><br>
+- 페이지 새로고침 시 최신 네이버 금융 데이터를 수집하여 순위가 결정됩니다.<br><br>
 <span style='color:#e74c3c; font-weight:bold;'>⚠️ [주의] 본 데이터는 정보 공유를 목적으로 하며, 모든 투자의 책임은 본인에게 있습니다.</span><br>
 <span style='color:#888; font-size:0.85rem; display:block; margin-top:10px;'>* 시스템 수정 및 기술 문의: 푸른돌디</span>
 </p>
