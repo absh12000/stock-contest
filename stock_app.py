@@ -16,7 +16,7 @@ st.set_page_config(page_title="주식 동행", layout="wide")
 BASE_DATE = "20260511" 
 END_DATE = "20260529"    
 
-@st.cache_data(ttl=60) # 1분마다 캐시를 자동 만료시켜 데이터가 멈추지 않게 합니다.
+@st.cache_data(ttl=60) 
 def get_pure_closing_price(ticker, target_date):
     """장외 거래를 제외한 정규장(15:30) 종가만 가져오는 부품"""
     try:
@@ -54,20 +54,16 @@ def get_stock_name_auto(ticker):
         return "코드오류"
 
 def fetch_single_ticker_data(ticker):
-    """[핵심 수정] 호출될 때마다 시간을 새로 찍어 데이터 고착을 방지합니다."""
+    """시세 데이터만 깔끔하게 수집합니다."""
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
     curr_p = get_realtime_price(ticker)
     auto_name = get_stock_name_auto(ticker)
-    
-    # 현재 시각을 초 단위까지 새로 고침
-    current_refresh_time = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
     
     if base_p and curr_p:
         return {
             'ticker': ticker, 
             '기준가': base_p, 
             '현재가': curr_p, 
-            '최종날짜': current_refresh_time, 
             'auto_name': auto_name
         }
     return None
@@ -120,13 +116,11 @@ try:
             rate = round((diff / base_p) * 100, 2)
             final_results.append({
                 '참가자': row['참가자'], '종목명': display_name, 
-                '기준가': base_p, '현재가': curr_p, '등락': diff, '수익률': rate,
-                '최종날짜': p_data['최종날짜']
+                '기준가': base_p, '현재가': curr_p, '등락': diff, '수익률': rate
             })
 
     if final_results:
         data = pd.DataFrame(final_results).sort_values(by='수익률', ascending=False).reset_index(drop=True)
-        last_date = data['최종날짜'].iloc[0]
         data['rank'] = data['수익률'].rank(method='min', ascending=False).astype(int)
         
         table_rows = ""
@@ -189,7 +183,7 @@ try:
                 </table>
             </div>
         """, unsafe_allow_html=True)
-        st.success(f"✅ 네이버 금융 시세 반영 완료 ({last_date})")
+        st.success(f"✅ 네이버 금융 시세 반영 완료")
 except Exception as e:
     st.error(f"오류 발생: {e}")
 
