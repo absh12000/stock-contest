@@ -54,16 +54,20 @@ def get_stock_name_auto(ticker):
         return "코드오류"
 
 def fetch_single_ticker_data(ticker):
-    """시세 데이터만 깔끔하게 수집합니다."""
+    """시세 데이터 수집 및 갱신 시점 기록"""
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
     curr_p = get_realtime_price(ticker)
     auto_name = get_stock_name_auto(ticker)
+    
+    # [수정] 초 단위는 빼고 '분'까지만 깔끔하게 기록
+    current_time = datetime.now().strftime("%Y.%m.%d %H:%M")
     
     if base_p and curr_p:
         return {
             'ticker': ticker, 
             '기준가': base_p, 
             '현재가': curr_p, 
+            '업데이트시간': current_time,
             'auto_name': auto_name
         }
     return None
@@ -116,11 +120,14 @@ try:
             rate = round((diff / base_p) * 100, 2)
             final_results.append({
                 '참가자': row['참가자'], '종목명': display_name, 
-                '기준가': base_p, '현재가': curr_p, '등락': diff, '수익률': rate
+                '기준가': base_p, '현재가': curr_p, '등락': diff, '수익률': rate,
+                '업데이트시간': p_data['업데이트시간']
             })
 
     if final_results:
         data = pd.DataFrame(final_results).sort_values(by='수익률', ascending=False).reset_index(drop=True)
+        # 가장 최근 업데이트 시간을 대표 시간으로 사용
+        last_update_time = data['업데이트시간'].iloc[0]
         data['rank'] = data['수익률'].rank(method='min', ascending=False).astype(int)
         
         table_rows = ""
@@ -183,7 +190,8 @@ try:
                 </table>
             </div>
         """, unsafe_allow_html=True)
-        st.success(f"✅ 네이버 금융 시세 반영 완료")
+        # [수리 완료] 날짜와 분 단위까지만 깔끔하게 노출
+        st.success(f"✅ 네이버 금융 시세 반영 완료 ({last_update_time})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
 
