@@ -108,22 +108,23 @@ try:
 
     if final_results:
         data = pd.DataFrame(final_results).sort_values(by='수익률', ascending=False).reset_index(drop=True)
-        # 동률 순위 대응 (공동 1위가 3명이면 다음은 4위)
         data['rank'] = data['수익률'].rank(method='min', ascending=False).astype(int)
         last_date = data['업데이트날짜'].iloc[0]
         
         table_rows = ""
         for i, row in data.iterrows():
             rank = row['rank'] 
-            # [수정 포인트] 1~3위는 숫자 제거, 큼직한 메달만 노출
+            
+            # [수정 포인트] 2번 스타일: 광택 그라데이션 원형 메달
             if rank == 1:
-                rank_disp = '<span style="font-size: 2.2rem; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));">🥇</span>'
+                rank_disp = '<div style="width:50px; height:50px; line-height:50px; border-radius:50%; background:linear-gradient(135deg, #FFD700, #FFA500); color:white; font-weight:bold; font-size:1.5rem; margin:auto; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); border:2px solid #FFF;">1</div>'
             elif rank == 2:
-                rank_disp = '<span style="font-size: 2.0rem; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));">🥈</span>'
+                rank_disp = '<div style="width:45px; height:45px; line-height:45px; border-radius:50%; background:linear-gradient(135deg, #E0E0E0, #808080); color:white; font-weight:bold; font-size:1.3rem; margin:auto; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); border:2px solid #FFF;">2</div>'
             elif rank == 3:
-                rank_disp = '<span style="font-size: 1.8rem; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));">🥉</span>'
+                rank_disp = '<div style="width:40px; height:40px; line-height:40px; border-radius:50%; background:linear-gradient(135deg, #CD7F32, #8B4513); color:white; font-weight:bold; font-size:1.2rem; margin:auto; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); border:2px solid #FFF;">3</div>'
             else:
-                rank_disp = f'<span style="font-size: 1.1rem; color: #666; font-weight: bold;">{rank}위</span>'
+                # 4위부터는 '위' 빼고 숫자만
+                rank_disp = f'<span style="font-size: 1.2rem; color: #666; font-weight: bold;">{rank}</span>'
             
             if row['수익률'] > 0: color, icon, prefix = "color:#e74c3c;", "▲", "+"
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
@@ -131,18 +132,18 @@ try:
 
             table_rows += f"""
             <tr style="font-size:0.95rem;">
-                <td style="padding:12px 2px; border-bottom:1px solid #eee;">{rank_disp}</td>
-                <td style="padding:12px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
-                <td style="padding:12px 10px; border-bottom:1px solid #eee; text-align:center;">
+                <td style="padding:15px 2px; border-bottom:1px solid #eee;">{rank_disp}</td>
+                <td style="padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
+                <td style="padding:15px 10px; border-bottom:1px solid #eee; text-align:center;">
                     <div style="font-size:1.05rem; font-weight:bold; color:#000; margin-bottom:5px;">{row['종목명']}</div>
                     <div class="mobile-only" style="font-size:0.75rem; color:#555;">
                         현재가: {row['현재가']:,.0f}원 ({icon}{abs(row['등락']):,.0f})
                     </div>
                 </td>
-                <td class="pc-only" style="padding:12px 5px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
-                <td class="pc-only" style="padding:12px 5px; border-bottom:1px solid #eee; font-weight:bold;">{row['현재가']:,.0f}원</td>
-                <td class="pc-only" style="padding:12px 5px; border-bottom:1px solid #eee; {color} font-weight:bold;">{icon} {abs(row['등락']):,.0f}원</td>
-                <td style="padding:12px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.1rem;">{prefix}{row['수익률']:.2f}%</td>
+                <td class="pc-only" style="padding:15px 5px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
+                <td class="pc-only" style="padding:15px 5px; border-bottom:1px solid #eee; font-weight:bold;">{row['현재가']:,.0f}원</td>
+                <td class="pc-only" style="padding:15px 5px; border-bottom:1px solid #eee; {color} font-weight:bold;">{icon} {abs(row['등락']):,.0f}원</td>
+                <td style="padding:15px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.1rem;">{prefix}{row['수익률']:.2f}%</td>
             </tr>
             """
         
