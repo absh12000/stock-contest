@@ -3,7 +3,7 @@ from pykrx import stock
 import pandas as pd
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
-import FinanceDataReader as fdr
+import FinanceDataReader as fdr  # 네이버 엔진
 
 # 1. 구글 시트 ID 설정
 SHEET_ID = "1qY0Z-Mzny61lk4TfO0FNoYF870ve3sI5SbDA4jS5M0Y"
@@ -18,10 +18,12 @@ END_DATE = "20260529"
 
 @st.cache_data(ttl=60) 
 def get_pure_closing_price(ticker, target_date):
+    """장외 거래를 제외한 정규장(15:30) 종가만 가져오는 부품"""
     try:
         df = fdr.DataReader(ticker, target_date, target_date)
         if not df.empty:
             return int(df['Close'].iloc[-1]), target_date
+        
         df_prev = fdr.DataReader(ticker, (datetime.now() - timedelta(days=7)).strftime("%Y%m%d"), target_date)
         if not df_prev.empty:
             return int(df_prev['Close'].iloc[-1]), df_prev.index[-1].strftime("%Y%m%d")
@@ -30,6 +32,7 @@ def get_pure_closing_price(ticker, target_date):
     return None, None
 
 def get_realtime_price(ticker):
+    """장중 실시간 시세 부품 (네이버 기반)"""
     try:
         today_str = datetime.now().strftime("%Y%m%d")
         df = fdr.DataReader(ticker, today_str)
@@ -43,6 +46,7 @@ def get_realtime_price(ticker):
 
 @st.cache_data
 def get_stock_name_auto(ticker):
+    """종목명 자동 검색"""
     try:
         name = stock.get_market_ticker_name(ticker)
         return name if name else "종목정보없음"
@@ -50,10 +54,14 @@ def get_stock_name_auto(ticker):
         return "코드오류"
 
 def fetch_single_ticker_data(ticker):
+    """시세 데이터 수집 및 날짜 기록"""
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
     curr_p = get_realtime_price(ticker)
     auto_name = get_stock_name_auto(ticker)
+    
+    # [핵심 수정] 시간은 완전히 버리고 날짜만 기록합니다.
     current_date = datetime.now().strftime("%Y.%m.%d")
+    
     if base_p and curr_p:
         return {
             'ticker': ticker, 
@@ -64,8 +72,10 @@ def fetch_single_ticker_data(ticker):
         }
     return None
 
+# 상단 타이틀
 st.title("🧭 주식 동행")
 
+# 실시간 갱신 버튼
 if st.button('🔄 실시간 시세 갱신'):
     st.cache_data.clear()
     st.rerun()
@@ -77,6 +87,11 @@ st.markdown(f"""
             <span style='font-weight:bold; font-size:1.05rem;'> "나누는 지식은 투자의 눈을 밝히고,<br>함께하는 동행은 수익의 뿌리를 깊게 합니다."</span><br>
             <span style='color:#666; font-size:0.9rem;'>{BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]}부터 현재까지의 기록입니다.</span>
         </p>
+        <div style='border-top:1px solid #eee; padding-top:10px; margin-top:10px;'>
+            <p style='color:#e74c3c; font-size:0.85rem; font-weight:bold; margin-bottom:0;'>
+                ⚠️ [주의] 본 데이터는 네이버 금융 정보를 기반으로 한 정보 공유용이며, 모든 투자의 책임은 본인에게 있습니다.
+            </p>
+        </div>
     </div>
 """, unsafe_allow_html=True)
 
@@ -84,12 +99,14 @@ try:
     df_list = pd.read_csv(SHEET_URL)
     df_list.columns = df_list.columns.str.strip()
     df_list = df_list.dropna(subset=['종목코드', '참가자'])
+    
     unique_tickers = [str(t).strip().split('.')[0].zfill(6) for t in df_list['종목코드'].unique()]
 
     with ThreadPoolExecutor(max_workers=20) as executor:
         price_results = list(executor.map(fetch_single_ticker_data, unique_tickers))
 
     price_map = {res['ticker']: res for res in price_results if res is not None}
+
     final_results = []
     for _, row in df_list.iterrows():
         ticker = str(row['종목코드']).strip().split('.')[0].zfill(6)
@@ -97,55 +114,39 @@ try:
         if p_data:
             raw_name = row.get('종목명', "")
             display_name = raw_name if pd.notna(raw_name) and str(raw_name).strip() != "" else p_data['auto_name']
+            
             base_p, curr_p = p_data['기준가'], p_data['현재가']
-            rate = round(((curr_p - base_p) / base_p) * 100, 2)
+            diff = curr_p - base_p
+            rate = round((diff / base_p) * 100, 2)
             final_results.append({
                 '참가자': row['참가자'], '종목명': display_name, 
-                '기준가': base_p, '현재가': curr_p, '등락': curr_p - base_p, '수익률': rate,
+                '기준가': base_p, '현재가': curr_p, '등락': diff, '수익률': rate,
                 '업데이트날짜': p_data['업데이트날짜']
             })
 
     if final_results:
         data = pd.DataFrame(final_results).sort_values(by='수익률', ascending=False).reset_index(drop=True)
-        data['rank'] = data['수익률'].rank(method='min', ascending=False).astype(int)
         last_date = data['업데이트날짜'].iloc[0]
+        data['rank'] = data['수익률'].rank(method='min', ascending=False).astype(int)
         
         table_rows = ""
         for i, row in data.iterrows():
             rank = row['rank'] 
-            
-            # [수정포인트] 진짜 리본 메달 디자인 적용
-            if rank == 1:
-                rank_disp = f"""
-                <div style="position:relative; width:45px; height:55px; margin:auto;">
-                    <div style="position:absolute; top:0; left:12px; width:22px; height:40px; background:linear-gradient(#ff4b2b, #ff416c); clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);"></div>
-                    <div style="position:absolute; bottom:0; left:3px; width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #ffd700, #ffb900); border:2px solid #fff; box-shadow:0 3px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:1.2rem; z-index:2;">1</div>
-                </div>"""
-            elif rank == 2:
-                rank_disp = f"""
-                <div style="position:relative; width:45px; height:55px; margin:auto;">
-                    <div style="position:absolute; top:0; left:12px; width:22px; height:40px; background:linear-gradient(#4facfe, #00f2fe); clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);"></div>
-                    <div style="position:absolute; bottom:0; left:3px; width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #e0e0e0, #a0a0a0); border:2px solid #fff; box-shadow:0 3px 5px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:1.1rem; z-index:2;">2</div>
-                </div>"""
-            elif rank == 3:
-                rank_disp = f"""
-                <div style="position:relative; width:45px; height:55px; margin:auto;">
-                    <div style="position:absolute; top:0; left:12px; width:22px; height:40px; background:linear-gradient(#6a11cb, #2575fc); clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);"></div>
-                    <div style="position:absolute; bottom:0; left:3px; width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #cd7f32, #a0522d); border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:1rem; z-index:2;">3</div>
-                </div>"""
+            if rank in [1, 2, 3]:
+                medal_icon = ["🥇", "🥈", "🥉"][rank-1]
+                rank_disp = f'<div style="position: relative; display: inline-block; width: 45px; text-align: center;"><span style="font-size: 1rem; color: #333; font-weight: bold; position: relative; z-index: 1;">{rank}위</span><span style="font-size: 1.35rem; position: absolute; top: -28px; left: 10px; z-index: 2; opacity: 0.85;">{medal_icon}</span></div>'
             else:
-                rank_disp = f'<span style="font-size: 1rem; color: #666; font-weight: bold;">{rank}위</span>'
+                rank_disp = f'<span style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</span>'
             
             if row['수익률'] > 0: color, icon, prefix = "color:#e74c3c;", "▲", "+"
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
 
-            # [복구완료] 모바일 전용 상세 데이터 노출 로직 그대로 유지
             table_rows += f"""
             <tr style="font-size:0.95rem;">
-                <td style="padding:10px 2px; border-bottom:1px solid #eee;">{rank_disp}</td>
-                <td style="padding:10px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
-                <td style="padding:10px 10px; border-bottom:1px solid #eee; text-align:center;">
+                <td style="padding:7px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
+                <td style="padding:7px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
+                <td style="padding:7px 10px; border-bottom:1px solid #eee; text-align:center;">
                     <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px;">{row['종목명']}</div>
                     <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
                         <div style="display:table; width:100%;">
@@ -155,35 +156,40 @@ try:
                         </div>
                     </div>
                 </td>
-                <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
-                <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; font-weight:bold;">{row['현재가']:,.0f}원</td>
-                <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; {color} font-weight:bold;">{icon} {abs(row['등락']):,.0f}원</td>
-                <td style="padding:10px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.05rem;">{prefix}{row['수익률']:.2f}%</td>
+                <td class="pc-only" style="padding:9px 5px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
+                <td class="pc-only" style="padding:9px 5px; border-bottom:1px solid #eee; font-weight:bold;">{row['현재가']:,.0f}원</td>
+                <td class="pc-only" style="padding:9px 5px; border-bottom:1px solid #eee; {color} font-weight:bold;">{icon} {abs(row['등락']):,.0f}원</td>
+                <td style="padding:12px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.05rem;">{prefix}{row['수익률']:.2f}%</td>
             </tr>
             """
         
         st.markdown(f"""
             <style>
                 .mobile-only {{ display: none !important; }}
-                @media (max-width: 800px) {{ .mobile-only {{ display: block !important; }} .pc-only {{ display: none !important; }} }}
+                .pc-only {{ display: table-cell !important; }}
+                @media (max-width: 800px) {{
+                    .mobile-only {{ display: block !important; }}
+                    .pc-only {{ display: none !important; }}
+                }}
             </style>
-            <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
                 <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
                     <thead>
                         <tr style="background-color:#1a3a5f; color:white; font-size:0.9rem;">
-                            <th style="width:15%; padding:15px 5px;">순위</th>
-                            <th style="width:15%;">참가자</th>
-                            <th style="width:30%;">종목 정보</th>
+                            <th style="width:12%; padding:12px 2px;">순위</th>
+                            <th style="width:13%; padding:12px 2px;">참가자</th>
+                            <th style="width:30%; padding:12px 5px;">종목 정보</th>
                             <th class="pc-only" style="width:15%;">기준가</th>
                             <th class="pc-only" style="width:15%;">현재가</th>
                             <th class="pc-only" style="width:15%;">등락</th>
-                            <th style="width:18%;">수익률</th>
+                            <th style="width:18%; padding:12px 5px;">수익률</th>
                         </tr>
                     </thead>
                     <tbody>{table_rows}</tbody>
                 </table>
             </div>
         """, unsafe_allow_html=True)
+        # [수리 완료] 시간은 삭제하고 날짜만 깔끔하게 노출
         st.success(f"✅ 네이버 금융 시세 반영 완료 ({last_date})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
