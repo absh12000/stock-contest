@@ -114,24 +114,24 @@ try:
         for i, row in data.iterrows():
             rank = row['rank'] 
             
-            # [수정포인트] 리본 달린 진짜 메달 스타일
+            # [수정포인트] 진짜 리본 메달 디자인 적용
             if rank == 1:
                 rank_disp = f"""
-                <div style="position:relative; width:50px; height:60px; margin:auto;">
-                    <div style="position:absolute; top:0; left:12px; width:26px; height:45px; background:linear-gradient(#ff4b2b, #ff416c); clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);"></div>
-                    <div style="position:absolute; bottom:0; left:4px; width:42px; height:42px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #ffd700, #ffb900); border:2px solid #fff; box-shadow:0 3px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:1.3rem; z-index:2;">1</div>
+                <div style="position:relative; width:45px; height:55px; margin:auto;">
+                    <div style="position:absolute; top:0; left:12px; width:22px; height:40px; background:linear-gradient(#ff4b2b, #ff416c); clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);"></div>
+                    <div style="position:absolute; bottom:0; left:3px; width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #ffd700, #ffb900); border:2px solid #fff; box-shadow:0 3px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:1.2rem; z-index:2;">1</div>
                 </div>"""
             elif rank == 2:
                 rank_disp = f"""
                 <div style="position:relative; width:45px; height:55px; margin:auto;">
-                    <div style="position:absolute; top:0; left:11px; width:23px; height:40px; background:linear-gradient(#4facfe, #00f2fe); clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);"></div>
-                    <div style="position:absolute; bottom:0; left:4px; width:37px; height:37px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #e0e0e0, #a0a0a0); border:2px solid #fff; box-shadow:0 3px 5px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:1.1rem; z-index:2;">2</div>
+                    <div style="position:absolute; top:0; left:12px; width:22px; height:40px; background:linear-gradient(#4facfe, #00f2fe); clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);"></div>
+                    <div style="position:absolute; bottom:0; left:3px; width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #e0e0e0, #a0a0a0); border:2px solid #fff; box-shadow:0 3px 5px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:1.1rem; z-index:2;">2</div>
                 </div>"""
             elif rank == 3:
                 rank_disp = f"""
-                <div style="position:relative; width:40px; height:50px; margin:auto;">
-                    <div style="position:absolute; top:0; left:10px; width:20px; height:35px; background:linear-gradient(#6a11cb, #2575fc); clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);"></div>
-                    <div style="position:absolute; bottom:0; left:4px; width:32px; height:32px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #cd7f32, #a0522d); border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:1rem; z-index:2;">3</div>
+                <div style="position:relative; width:45px; height:55px; margin:auto;">
+                    <div style="position:absolute; top:0; left:12px; width:22px; height:40px; background:linear-gradient(#6a11cb, #2575fc); clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);"></div>
+                    <div style="position:absolute; bottom:0; left:3px; width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #cd7f32, #a0522d); border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:1rem; z-index:2;">3</div>
                 </div>"""
             else:
                 rank_disp = f'<span style="font-size: 1rem; color: #666; font-weight: bold;">{rank}위</span>'
@@ -140,20 +140,25 @@ try:
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
 
+            # [복구완료] 모바일 전용 상세 데이터 노출 로직 그대로 유지
             table_rows += f"""
             <tr style="font-size:0.95rem;">
                 <td style="padding:10px 2px; border-bottom:1px solid #eee;">{rank_disp}</td>
                 <td style="padding:10px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
                 <td style="padding:10px 10px; border-bottom:1px solid #eee; text-align:center;">
                     <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px;">{row['종목명']}</div>
-                    <div class="mobile-only" style="font-size:0.72rem; color:#555;">
-                        현재가: {row['현재가']:,.0f}원 ({icon}{abs(row['등락']):,.0f})
+                    <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
+                        <div style="display:table; width:100%;">
+                            <div style="display:table-row;"><div style="display:table-cell;">기준가:</div><div style="display:table-cell; text-align:right;">{row['기준가']:,.0f}원</div></div>
+                            <div style="display:table-row; color:#333; font-weight:bold;"><div style="display:table-cell;">현재가:</div><div style="display:table-cell; text-align:right;">{row['현재가']:,.0f}원</div></div>
+                            <div style="display:table-row; {color}"><div style="display:table-cell;">등락:</div><div style="display:table-cell; text-align:right;">{icon}{abs(row['등락']):,.0f}원</div></div>
+                        </div>
                     </div>
                 </td>
                 <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
                 <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; font-weight:bold;">{row['현재가']:,.0f}원</td>
                 <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; {color} font-weight:bold;">{icon} {abs(row['등락']):,.0f}원</td>
-                <td style="padding:10px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.1rem;">{prefix}{row['수익률']:.2f}%</td>
+                <td style="padding:10px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.05rem;">{prefix}{row['수익률']:.2f}%</td>
             </tr>
             """
         
@@ -169,10 +174,10 @@ try:
                             <th style="width:15%; padding:15px 5px;">순위</th>
                             <th style="width:15%;">참가자</th>
                             <th style="width:30%;">종목 정보</th>
-                            <th class="pc-only" style="width:12%;">기준가</th>
-                            <th class="pc-only" style="width:12%;">현재가</th>
-                            <th class="pc-only" style="width:12%;">등락</th>
-                            <th style="width:16%;">수익률</th>
+                            <th class="pc-only" style="width:15%;">기준가</th>
+                            <th class="pc-only" style="width:15%;">현재가</th>
+                            <th class="pc-only" style="width:15%;">등락</th>
+                            <th style="width:18%;">수익률</th>
                         </tr>
                     </thead>
                     <tbody>{table_rows}</tbody>
