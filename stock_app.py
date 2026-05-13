@@ -132,11 +132,31 @@ try:
         table_rows = ""
         for i, row in data.iterrows():
             rank = row['rank'] 
-            if rank in [1, 2, 3]:
-                medal_icon = ["🥇", "🥈", "🥉"][rank-1]
-                rank_disp = f'<div style="position: relative; display: inline-block; width: 45px; text-align: center;"><span style="font-size: 1rem; color: #333; font-weight: bold; position: relative; z-index: 1;">{rank}위</span><span style="font-size: 1.35rem; position: absolute; top: -28px; left: 10px; z-index: 2; opacity: 0.85;">{medal_icon}</span></div>'
+            # [수정] image_583af6.png 등의 디자인을 적용한 입체 메달 로직
+            if rank == 1:
+                # 🥇 금메달 (image_583af6.png 스타일)
+                rank_disp = f"""
+                <div style="position:relative; width:50px; height:60px; margin:auto;">
+                    <div style="position:absolute; top:0; left:12px; width:26px; height:38px; background:linear-gradient(#5bc0de, #2e9ad0); clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);"></div>
+                    <div style="position:absolute; bottom:0; left:4px; width:42px; height:42px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #ffd700, #f1c40f); border:2.5px solid #fff; box-shadow:0 3px 6px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; color:#000; font-weight:900; font-size:1.4rem; z-index:2;">1</div>
+                </div>"""
+            elif rank == 2:
+                # 🥈 은메달 (image_583b18.png 스타일)
+                rank_disp = f"""
+                <div style="position:relative; width:50px; height:60px; margin:auto;">
+                    <div style="position:absolute; top:0; left:12px; width:26px; height:38px; background:linear-gradient(#5bc0de, #2e9ad0); clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);"></div>
+                    <div style="position:absolute; bottom:0; left:4px; width:42px; height:42px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #f0f0f0, #bdc3c7); border:2.5px solid #fff; box-shadow:0 3px 6px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; color:#000; font-weight:900; font-size:1.4rem; z-index:2;">2</div>
+                </div>"""
+            elif rank == 3:
+                # 🥉 동메달 (image_583b37.png 스타일)
+                rank_disp = f"""
+                <div style="position:relative; width:50px; height:60px; margin:auto;">
+                    <div style="position:absolute; top:0; left:12px; width:26px; height:38px; background:linear-gradient(#5bc0de, #2e9ad0); clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);"></div>
+                    <div style="position:absolute; bottom:0; left:4px; width:42px; height:42px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #e67e22, #d35400); border:2.5px solid #fff; box-shadow:0 3px 6px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; color:#000; font-weight:900; font-size:1.4rem; z-index:2;">3</div>
+                </div>"""
             else:
-                rank_disp = f'<span style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</span>'
+                # 4위부터는 요청하신 대로 숫자와 '위'만 표시
+                rank_disp = f'<span style="font-size: 1.1rem; color: #444; font-weight: bold;">{rank}위</span>'
             
             if row['수익률'] > 0: color, icon, prefix = "color:#e74c3c;", "▲", "+"
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
