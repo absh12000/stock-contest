@@ -133,15 +133,17 @@ try:
         for i, row in data.iterrows():
             rank = row['rank'] 
             ticker = row['ticker']
-            
-            # 메달 없이 숫자 표시
-            rank_disp = f'<span style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</span>'
+            if rank in [1, 2, 3]:
+                medal_icon = ["🥇", "🥈", "🥉"][rank-1]
+                rank_disp = f'<div style="position: relative; display: inline-block; width: 45px; text-align: center;"><span style="font-size: 1rem; color: #333; font-weight: bold; position: relative; z-index: 1;">{rank}위</span><span style="font-size: 1.35rem; position: absolute; top: -28px; left: 10px; z-index: 2; opacity: 0.85;">{medal_icon}</span></div>'
+            else:
+                rank_disp = f'<span style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</span>'
             
             if row['수익률'] > 0: color, icon, prefix = "color:#e74c3c;", "▲", "+"
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
 
-            # 네이버 증권 링크 생성
+            # 네이버 증권 상세 페이지 링크 주소 생성
             naver_url = f"https://finance.naver.com/item/main.naver?code={ticker}"
 
             table_rows += f"""
@@ -150,7 +152,7 @@ try:
                 <td style="padding:7px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
                 <td style="padding:7px 10px; border-bottom:1px solid #eee; text-align:center;">
                     <a href="{naver_url}" target="_blank" style="text-decoration:none; color:inherit;">
-                        <div style="font-size:1.04rem; font-weight:bold; color:#000; cursor:pointer; margin-bottom:5px;">{row['종목명']}</div>
+                        <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px; cursor:pointer;">{row['종목명']}</div>
                     </a>
                     <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
                         <div style="display:table; width:100%;">
@@ -193,6 +195,7 @@ try:
                 </table>
             </div>
         """, unsafe_allow_html=True)
+        # [수리 완료] 시간은 삭제하고 날짜만 깔끔하게 노출
         st.success(f"✅ 네이버 금융 시세 반영 완료 ({last_date})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
