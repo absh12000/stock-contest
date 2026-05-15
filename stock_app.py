@@ -119,7 +119,7 @@ try:
             diff = curr_p - base_p
             rate = round((diff / base_p) * 100, 2)
             final_results.append({
-                '참가자': row['참가자'], '종목명': display_name, 
+                '참가자': row['참가자'], '종목명': display_name, 'ticker': ticker,
                 '기준가': base_p, '현재가': curr_p, '등락': diff, '수익률': rate,
                 '업데이트날짜': p_data['업데이트날짜']
             })
@@ -132,22 +132,26 @@ try:
         table_rows = ""
         for i, row in data.iterrows():
             rank = row['rank'] 
-            if rank in [1, 2, 3]:
-                medal_icon = ["🥇", "🥈", "🥉"][rank-1]
-                rank_disp = f'<div style="position: relative; display: inline-block; width: 45px; text-align: center;"><span style="font-size: 1rem; color: #333; font-weight: bold; position: relative; z-index: 1;">{rank}위</span><span style="font-size: 1.35rem; position: absolute; top: -28px; left: 10px; z-index: 2; opacity: 0.85;">{medal_icon}</span></div>'
-            else:
-                rank_disp = f'<span style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</span>'
+            ticker = row['ticker']
+            
+            # [메달 삭제] 숫자만 표시되도록 단순화
+            rank_disp = f'<span style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</span>'
             
             if row['수익률'] > 0: color, icon, prefix = "color:#e74c3c;", "▲", "+"
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
+
+            # [핵심 적용] 종목 클릭 시 네이버 증권 연결
+            naver_url = f"https://finance.naver.com/item/main.naver?code={ticker}"
 
             table_rows += f"""
             <tr style="font-size:0.95rem;">
                 <td style="padding:7px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
                 <td style="padding:7px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
                 <td style="padding:7px 10px; border-bottom:1px solid #eee; text-align:center;">
-                    <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px;">{row['종목명']}</div>
+                    <a href="{naver_url}" target="_blank" style="text-decoration:none; color:inherit;">
+                        <div style="font-size:1.04rem; font-weight:bold; color:#007bff; cursor:pointer; margin-bottom:5px;">{row['종목명']} 🔗</div>
+                    </a>
                     <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
                         <div style="display:table; width:100%;">
                             <div style="display:table-row;"><div style="display:table-cell;">기준가:</div><div style="display:table-cell; text-align:right;">{row['기준가']:,.0f}원</div></div>
