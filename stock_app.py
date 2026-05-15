@@ -18,12 +18,10 @@ END_DATE = "20260529"
 
 @st.cache_data(ttl=60) 
 def get_pure_closing_price(ticker, target_date):
-    """장외 거래를 제외한 정규장(15:30) 종가만 가져오는 부품"""
     try:
         df = fdr.DataReader(ticker, target_date, target_date)
         if not df.empty:
             return int(df['Close'].iloc[-1]), target_date
-        
         df_prev = fdr.DataReader(ticker, (datetime.now() - timedelta(days=7)).strftime("%Y%m%d"), target_date)
         if not df_prev.empty:
             return int(df_prev['Close'].iloc[-1]), df_prev.index[-1].strftime("%Y%m%d")
@@ -34,7 +32,8 @@ def get_pure_closing_price(ticker, target_date):
 def get_realtime_price(ticker):
     """장중 실시간 시세 및 전일 대비 등락률 계산"""
     try:
-        start_date = (datetime.now() - timedelta(days=5)).strftime("%Y%m%d")
+        # 전일 종가 비교를 위해 최근 데이터를 넉넉히 가져옴
+        start_date = (datetime.now() - timedelta(days=7)).strftime("%Y%m%d")
         df = fdr.DataReader(ticker, start_date)
         
         if not df.empty:
@@ -51,7 +50,6 @@ def get_realtime_price(ticker):
 
 @st.cache_data
 def get_stock_name_auto(ticker):
-    """종목명 자동 검색"""
     try:
         name = stock.get_market_ticker_name(ticker)
         return name if name else "종목정보없음"
@@ -59,12 +57,10 @@ def get_stock_name_auto(ticker):
         return "코드오류"
 
 def fetch_single_ticker_data(ticker):
-    """시세 데이터 수집"""
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
     curr_p, day_rate = get_realtime_price(ticker)
     auto_name = get_stock_name_auto(ticker)
     current_date = datetime.now().strftime("%Y.%m.%d")
-    
     if base_p and curr_p:
         return {
             'ticker': ticker, 
@@ -76,10 +72,8 @@ def fetch_single_ticker_data(ticker):
         }
     return None
 
-# 상단 타이틀
 st.title("🧭 주식 동행")
 
-# 실시간 갱신 버튼
 if st.button('🔄 실시간 시세 갱신'):
     st.cache_data.clear()
     st.rerun()
@@ -128,23 +122,22 @@ try:
         for i, row in data.iterrows():
             rank = row['rank'] 
             ticker = row['ticker']
+            day_rate = row['당일등락률'] # 여기 변수명을 정확히 맞췄습니다.
             
-            # 순위 아이콘 설정
             if rank in [1, 2, 3]:
                 medal_icon = ["🥇", "🥈", "🥉"][rank-1]
                 rank_disp = f'<div style="position: relative; display: inline-block; width: 45px; text-align: center;"><span style="font-size: 1rem; color: #333; font-weight: bold; position: relative; z-index: 1;">{rank}위</span><span style="font-size: 1.35rem; position: absolute; top: -28px; left: 10px; z-index: 2; opacity: 0.85;">{medal_icon}</span></div>'
             else:
                 rank_disp = f'<span style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</span>'
             
-            # 색상 설정 (수익률)
+            # 전체 수익률 색상
             if row['수익률'] > 0: color, icon, prefix = "color:#e74c3c;", "▲", "+"
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
 
-            # 색상 설정 (당일등락률)
-            day_rate = row['당일등락률']
-            day_color = "#e74c3c" if day_rate > 0 else "#3498db" if day_rate < 0 else "#333"
-            day_icon = "▲" if day_rate > 0 else "▼" if day_rate < 0 else ""
+            # 당일 등락률 색상 (PC 전용 노출용)
+            d_color = "#e74c3c" if day_rate > 0 else "#3498db" if day_rate < 0 else "#333"
+            d_icon = "▲" if day_rate > 0 else "▼" if day_rate < 0 else ""
 
             naver_url = f"https://finance.naver.com/item/main.naver?code={ticker}"
 
@@ -156,8 +149,8 @@ try:
                     <a href="{naver_url}" target="_blank" style="text-decoration:none; color:inherit;">
                         <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px; cursor:pointer;">{row['종목명']}</div>
                     </a>
-                    <div class="pc-only" style="font-size:0.85rem; color:{day_color}; font-weight:bold; margin-top:-2px; margin-bottom:5px;">
-                        ({day_icon} {abs(day_rate):.2f}%)
+                    <div class="pc-only" style="font-size:0.85rem; color:{d_color}; font-weight:bold; margin-top:-2px;">
+                        ({d_icon}{abs(day_rate):.2f}%)
                     </div>
                     <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
                         <div style="display:table; width:100%;">
@@ -178,15 +171,12 @@ try:
             <style>
                 .mobile-only {{ display: none !important; }}
                 .pc-only {{ display: none !important; }}
-                
                 @media (min-width: 801px) {{
                     .pc-only {{ display: table-cell !important; }}
                     div.pc-only {{ display: block !important; }}
                 }}
-                
                 @media (max-width: 800px) {{
                     .mobile-only {{ display: block !important; }}
-                    .pc-only {{ display: none !important; }}
                 }}
             </style>
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
@@ -209,7 +199,6 @@ try:
         st.success(f"✅ 네이버 금융 시세 반영 완료 ({data['업데이트날짜'].iloc[0]})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
-# (이하 가이드 섹션 동일)
 
 st.markdown("---")
 st.markdown(f"""
