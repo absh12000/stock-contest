@@ -35,13 +35,11 @@ def get_realtime_price(ticker):
     """장중 실시간 시세 및 전일 대비 등락률 계산 부품"""
     try:
         today_str = datetime.now().strftime("%Y%m%d")
-        # 전일 종가를 확인하기 위해 최근 5일치 데이터를 가져옵니다.
         start_date = (datetime.now() - timedelta(days=5)).strftime("%Y%m%d")
         df = fdr.DataReader(ticker, start_date)
         
         if not df.empty:
             curr_p = int(df['Close'].iloc[-1])
-            # 데이터가 2개 이상일 때만 전일 대비 등락률 계산
             if len(df) > 1:
                 prev_p = int(df['Close'].iloc[-2])
                 day_rate = ((curr_p - prev_p) / prev_p) * 100
@@ -67,7 +65,6 @@ def fetch_single_ticker_data(ticker):
     curr_p, day_rate = get_realtime_price(ticker)
     auto_name = get_stock_name_auto(ticker)
     
-    # [핵심 수정] 시간은 완전히 버리고 날짜만 기록합니다.
     current_date = datetime.now().strftime("%Y.%m.%d")
     
     if base_p and curr_p:
@@ -158,9 +155,9 @@ try:
             day_color = "#e74c3c" if day_rate > 0 else "#3498db" if day_rate < 0 else "#333"
             day_icon = "▲" if day_rate > 0 else "▼" if day_rate < 0 else ""
 
-            # 네이버 증권 상세 페이지 링크 주소 생성
             naver_url = f"https://finance.naver.com/item/main.naver?code={ticker}"
 
+            # [수정 핵심] 모바일(mobile-only) 섹션에서 기준가, 현재가 표기를 삭제했습니다.
             table_rows += f"""
             <tr style="font-size:0.95rem;">
                 <td style="padding:7px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
@@ -169,15 +166,8 @@ try:
                     <a href="{naver_url}" target="_blank" style="text-decoration:none; color:inherit;">
                         <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px; cursor:pointer;">{row['종목명']}</div>
                     </a>
-                    <div class="pc-only" style="font-size:0.85rem; color:{day_color}; font-weight:bold; margin-top:-3px; margin-bottom:5px;">
+                    <div style="font-size:0.85rem; color:{day_color}; font-weight:bold; margin-top:-3px; margin-bottom:5px;">
                         {day_icon} {abs(day_rate):.2f}%
-                    </div>
-                    <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
-                        <div style="display:table; width:100%;">
-                            <div style="display:table-row;"><div style="display:table-cell;">기준가:</div><div style="display:table-cell; text-align:right;">{row['기준가']:,.0f}원</div></div>
-                            <div style="display:table-row; color:#333; font-weight:bold;"><div style="display:table-cell;">현재가:</div><div style="display:table-cell; text-align:right;">{row['현재가']:,.0f}원</div></div>
-                            <div style="display:table-row; {color}"><div style="display:table-cell;">등락:</div><div style="display:table-cell; text-align:right;">{icon}{abs(row['등락']):,.0f}원</div></div>
-                        </div>
                     </div>
                 </td>
                 <td class="pc-only" style="padding:9px 5px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
@@ -189,14 +179,10 @@ try:
         
         st.markdown(f"""
             <style>
-                .mobile-only {{ display: none !important; }}
-                .pc-only {{ display: block !important; }}
+                .pc-only {{ display: table-cell !important; }}
                 @media (max-width: 800px) {{
-                    .mobile-only {{ display: block !important; }}
                     .pc-only {{ display: none !important; }}
                 }}
-                /* 테이블 셀 구조 유지를 위한 설정 */
-                td.pc-only, th.pc-only {{ display: table-cell !important; }}
             </style>
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
                 <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
@@ -215,7 +201,7 @@ try:
                 </table>
             </div>
         """, unsafe_allow_html=True)
-        # [수리 완료] 시간은 삭제하고 날짜만 깔끔하게 노출
+        
         st.success(f"✅ 네이버 금융 시세 반영 완료 ({last_date})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
