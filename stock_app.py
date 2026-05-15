@@ -93,11 +93,6 @@ st.markdown(f"""
             <span style='font-weight:bold; font-size:1.05rem;'> "나누는 지식은 투자의 눈을 밝히고,<br>함께하는 동행은 수익의 뿌리를 깊게 합니다."</span><br>
             <span style='color:#666; font-size:0.9rem;'>{BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]}부터 현재까지의 기록입니다.</span>
         </p>
-        <div style='border-top:1px solid #eee; padding-top:10px; margin-top:10px;'>
-            <p style='color:#e74c3c; font-size:0.85rem; font-weight:bold; margin-bottom:0;'>
-                ⚠️ [주의] 본 데이터는 네이버 금융 정보를 기반으로 한 정보 공유용이며, 모든 투자의 책임은 본인에게 있습니다.
-            </p>
-        </div>
     </div>
 """, unsafe_allow_html=True)
 
@@ -150,7 +145,6 @@ try:
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
 
-            # 당일 등락률 색상 설정 (PC 전용)
             day_rate = row['당일등락률']
             day_color = "#e74c3c" if day_rate > 0 else "#3498db" if day_rate < 0 else "#333"
             day_icon = "▲" if day_rate > 0 else "▼" if day_rate < 0 else ""
@@ -186,13 +180,18 @@ try:
         st.markdown(f"""
             <style>
                 .mobile-only {{ display: none !important; }}
-                .pc-only {{ display: block !important; }}
+                .pc-only {{ display: none !important; }} /* 기본적으로 숨김 */
+                
+                @media (min-width: 801px) {{
+                    .pc-only {{ display: table-cell !important; }}
+                    div.pc-only {{ display: block !important; }}
+                }}
+                
                 @media (max-width: 800px) {{
                     .mobile-only {{ display: block !important; }}
+                    /* 모바일에서 기준가, 현재가, 등락 컬럼을 완전히 제거 */
                     .pc-only {{ display: none !important; }}
                 }}
-                /* 테이블 셀 구조 유지를 위한 설정 */
-                td.pc-only, th.pc-only {{ display: table-cell !important; }}
             </style>
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
                 <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
@@ -200,23 +199,19 @@ try:
                         <tr style="background-color:#1a3a5f; color:white; font-size:0.9rem;">
                             <th style="width:12%; padding:12px 2px;">순위</th>
                             <th style="width:13%; padding:12px 2px;">참가자</th>
-                            <th style="width:30%; padding:12px 5px;">종목 정보</th>
-                            <th class="pc-only" style="width:15%;">기준가</th>
-                            <th class="pc-only" style="width:15%;">현재가</th>
-                            <th class="pc-only" style="width:15%;">등락</th>
-                            <th style="width:18%; padding:12px 5px;">수익률</th>
+                            <th style="width:40%; padding:12px 5px;">종목 정보</th> <th class="pc-only" style="width:12%;">기준가</th>
+                            <th class="pc-only" style="width:12%;">현재가</th>
+                            <th class="pc-only" style="width:12%;">등락</th>
+                            <th style="width:20%; padding:12px 5px;">수익률</th>
                         </tr>
                     </thead>
                     <tbody>{table_rows}</tbody>
                 </table>
             </div>
         """, unsafe_allow_html=True)
-        
         st.success(f"✅ 네이버 금융 시세 반영 완료 ({last_date})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
-
-st.markdown("---")
 # (이하 가이드 섹션 동일)
 
 st.markdown("---")
