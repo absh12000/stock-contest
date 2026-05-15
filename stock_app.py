@@ -159,11 +159,9 @@ try:
                     <a href="{naver_url}" target="_blank" style="text-decoration:none; color:inherit;">
                         <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px; cursor:pointer;">{row['종목명']}</div>
                     </a>
-
-                    <div class="pc-only" style="font-size:0.85rem; color:{day_color}; font-weight:bold; margin-top:-2px; margin-bottom:5px;">
-                        ({day_icon} {abs(day_rate):.2f}%)
+                    <div class="pc-only" style="font-size:0.85rem; color:{day_color}; font-weight:bold; margin-top:-3px; margin-bottom:5px;">
+                        {day_icon} {abs(day_rate):.2f}%
                     </div>
-
                     <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
                         <div style="display:table; width:100%;">
                             <div style="display:table-row;"><div style="display:table-cell;">기준가:</div><div style="display:table-cell; text-align:right;">{row['기준가']:,.0f}원</div></div>
@@ -198,7 +196,7 @@ try:
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
                 <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
                     <thead>
-                        <tr style="background-color:#1a3a5f; color:white; font-size:1.0rem;">
+                        <tr style="background-color:#1a3a5f; color:white; font-size:0.9rem;">
                             <th style="width:12%; padding:12px 2px;">순위</th>
                             <th style="width:13%; padding:12px 2px;">참가자</th>
                             <th style="width:40%; padding:12px 5px;">종목 정보</th> <th class="pc-only" style="width:12%;">기준가</th>
@@ -215,28 +213,3 @@ try:
 except Exception as e:
     st.error(f"오류 발생: {e}")
 # (이하 가이드 섹션 동일)
-
-st.markdown("---")
-st.markdown(f"""
-<div style='background-color:#ffffff; padding:25px; border-radius:10px; border:1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.05);'>
-<h3 style='color:#1a3a5f; margin-top:0; margin-bottom:20px; border-bottom:2px solid #1a3a5f; padding-bottom:10px;'>🧭 데이터 산출 가이드</h3>
-<p style='font-size:0.95rem; line-height:1.8; color:#333; margin:0;'>
-<b>1. 데이터 기준 및 출처</b><br>
-- 본 시스템은 네이버 금융(Naver Finance)의 시장 정보를 실시간으로 참조합니다.<br>
-- 자료 출처: 네이버 금융 정보 서비스<br><br>
-<b>2. 휴일 및 비영업일 데이터 반영</b><br>
-- 시장 휴장일(토, 일, 공휴일)에는 데이터가 업데이트되지 않으며, 직전 거래일 종가로 산출됩니다.<br>
-- 반영 기간: {BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]} ~ {END_DATE[:4]}.{END_DATE[4:6]}.{END_DATE[6:]}<br><br>
-<b>3. 장중 데이터와 장마감 데이터의 차이</b><br>
-- 장중(09:00~15:30): 네이버 금융 실시간 시세를 바탕으로 수익률을 계산합니다.<br>
-- 장마감 후: 당일 최종 확정된 정규장 종가(15:30)를 기준으로 데이터가 고정됩니다.<br><br>
-<b>4. 실시간 데이터 오차 안내</b><br>
-- 네이버 시스템과 실제 HTS 간에는 약 수 초에서 수 분의 시차가 발생할 수 있습니다.<br><br>
-<b>5. 업데이트 및 순위 산정</b><br>
-- 본 페이지는 사용자가 새로고침(F5)을 할 때 최신 데이터를 수집하여 반영합니다.<br>
-- 시작일 기준가 대비 현재가 수익률로 실시간 순위가 결정됩니다.<br><br>
-<span style='color:#e74c3c; font-weight:bold;'>⚠️ [주의] 본 데이터는 정보 공유를 목적으로 하며, 모든 투자의 책임은 본인에게 있습니다.</span><br>
-<span style='color:#888; font-size:0.85rem; display:block; margin-top:10px;'>* 시스템 수정 및 기술 문의: 푸른돌디</span>
-</p>
-</div>
-""", unsafe_allow_html=True)
