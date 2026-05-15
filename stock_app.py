@@ -192,7 +192,7 @@ try:
                     <thead>
                         <tr style="background-color:#1a3a5f; color:white; font-size:1.2rem;">
                             <th style="width:11%; padding:15px 2px;">순위</th>
-                            <th style="width:15%;">참가자</th>
+                            <th style="width:16%;">참가자</th>
                             <th style="width:30%;">
                                 <div>종목 정보</div>
                                 <div class="pc-only" style="font-size:0.8rem; font-weight:normal; opacity:0.8; margin-top:2px;">(당일등락률)</div>
@@ -200,7 +200,7 @@ try:
                             <th class="pc-only" style="width:15%;">기준가</th>
                             <th class="pc-only" style="width:15%;">현재가</th>
                             <th class="pc-only" style="width:15%;">등락</th>
-                            <th style="width:18%;">수익률</th>
+                            <th style="width:17%;">수익률</th>
                         </tr>
                     </thead>
                     <tbody>{table_rows}</tbody>
