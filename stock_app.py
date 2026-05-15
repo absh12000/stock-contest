@@ -186,17 +186,13 @@ try:
                     .mobile-only {{ display: block !important; }}
                 }}
             </style>
-            # ... 앞부분 생략 ...
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
                 <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
                     <thead>
                         <tr style="background-color:#1a3a5f; color:white; font-size:1.2rem;">
                             <th style="width:12%; padding:15px 2px;">순위</th>
                             <th style="width:13%;">참가자</th>
-                            <th style="width:30%; padding:10px 5px;">
-                                <div>종목 정보</div>
-                                <div style="font-size:0.8rem; font-weight:normal; opacity:0.8; margin-top:2px;">(당일등락률)</div>
-                            </th>
+                            <th style="width:30%;">종목 정보</th>
                             <th class="pc-only" style="width:15%;">기준가</th>
                             <th class="pc-only" style="width:15%;">현재가</th>
                             <th class="pc-only" style="width:15%;">등락</th>
@@ -206,7 +202,6 @@ try:
                     <tbody>{table_rows}</tbody>
                 </table>
             </div>
-# ... 뒷부분 생략 ...
         """, unsafe_allow_html=True)
         st.success(f"✅ 네이버 금융 시세 반영 완료 ({data['업데이트날짜'].iloc[0]})")
 except Exception as e:
