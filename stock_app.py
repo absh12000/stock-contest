@@ -183,6 +183,8 @@ try:
                 }}
                 @media (max-width: 800px) {{
                     .mobile-only {{ display: block !important; }}
+                    /* 모바일에서만 제목 글자를 1rem으로 축소 (기존 1.2rem에서 변경) */
+                    thead tr {{ font-size: 1rem !important; }} 
                 }}
             </style>
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
@@ -191,7 +193,7 @@ try:
                         <tr style="background-color:#1a3a5f; color:white; font-size:1.2rem;">
                             <th style="width:12%; padding:15px 2px;">순위</th>
                             <th style="width:13%;">참가자</th>
-                            <th style="width:30%; padding:10px 5px;">
+                            <th style="width:30%;">
                                 <div>종목 정보</div>
                                 <div class="pc-only" style="font-size:0.8rem; font-weight:normal; opacity:0.8; margin-top:2px;">(당일등락률)</div>
                             </th>
