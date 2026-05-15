@@ -150,14 +150,13 @@ try:
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
 
-            # 당일 등락률 색상 설정
+            # 당일 등락률 색상 설정 (PC 전용)
             day_rate = row['당일등락률']
             day_color = "#e74c3c" if day_rate > 0 else "#3498db" if day_rate < 0 else "#333"
             day_icon = "▲" if day_rate > 0 else "▼" if day_rate < 0 else ""
 
             naver_url = f"https://finance.naver.com/item/main.naver?code={ticker}"
 
-            # [수정 핵심] 모바일(mobile-only) 섹션에서 기준가, 현재가 표기를 삭제했습니다.
             table_rows += f"""
             <tr style="font-size:0.95rem;">
                 <td style="padding:7px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
@@ -166,8 +165,15 @@ try:
                     <a href="{naver_url}" target="_blank" style="text-decoration:none; color:inherit;">
                         <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px; cursor:pointer;">{row['종목명']}</div>
                     </a>
-                    <div style="font-size:0.85rem; color:{day_color}; font-weight:bold; margin-top:-3px; margin-bottom:5px;">
+                    <div class="pc-only" style="font-size:0.85rem; color:{day_color}; font-weight:bold; margin-top:-3px; margin-bottom:5px;">
                         {day_icon} {abs(day_rate):.2f}%
+                    </div>
+                    <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
+                        <div style="display:table; width:100%;">
+                            <div style="display:table-row;"><div style="display:table-cell;">기준가:</div><div style="display:table-cell; text-align:right;">{row['기준가']:,.0f}원</div></div>
+                            <div style="display:table-row; color:#333; font-weight:bold;"><div style="display:table-cell;">현재가:</div><div style="display:table-cell; text-align:right;">{row['현재가']:,.0f}원</div></div>
+                            <div style="display:table-row; {color}"><div style="display:table-cell;">등락:</div><div style="display:table-cell; text-align:right;">{icon}{abs(row['등락']):,.0f}원</div></div>
+                        </div>
                     </div>
                 </td>
                 <td class="pc-only" style="padding:9px 5px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
@@ -179,10 +185,14 @@ try:
         
         st.markdown(f"""
             <style>
-                .pc-only {{ display: table-cell !important; }}
+                .mobile-only {{ display: none !important; }}
+                .pc-only {{ display: block !important; }}
                 @media (max-width: 800px) {{
+                    .mobile-only {{ display: block !important; }}
                     .pc-only {{ display: none !important; }}
                 }}
+                /* 테이블 셀 구조 유지를 위한 설정 */
+                td.pc-only, th.pc-only {{ display: table-cell !important; }}
             </style>
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
                 <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
@@ -205,6 +215,9 @@ try:
         st.success(f"✅ 네이버 금융 시세 반영 완료 ({last_date})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
+
+st.markdown("---")
+# (이하 가이드 섹션 동일)
 
 st.markdown("---")
 st.markdown(f"""
