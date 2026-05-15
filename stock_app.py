@@ -159,9 +159,11 @@ try:
                     <a href="{naver_url}" target="_blank" style="text-decoration:none; color:inherit;">
                         <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px; cursor:pointer;">{row['종목명']}</div>
                     </a>
-                    <div class="pc-only" style="font-size:0.85rem; color:{day_color}; font-weight:bold; margin-top:-3px; margin-bottom:5px;">
-                        {day_icon} {abs(day_rate):.2f}%
+
+                    <div class="pc-only" style="font-size:0.85rem; color:{day_color}; font-weight:bold; margin-top:-2px; margin-bottom:5px;">
+                        ({day_icon} {abs(day_rate):.2f}%)
                     </div>
+
                     <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
                         <div style="display:table; width:100%;">
                             <div style="display:table-row;"><div style="display:table-cell;">기준가:</div><div style="display:table-cell; text-align:right;">{row['기준가']:,.0f}원</div></div>
