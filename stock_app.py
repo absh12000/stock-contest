@@ -32,9 +32,8 @@ def get_pure_closing_price(ticker, target_date):
     return None, None
 
 def get_realtime_price(ticker):
-    """장중 실시간 시세 및 전일 대비 등락률 계산 부품"""
+    """장중 실시간 시세 및 전일 대비 등락률 계산"""
     try:
-        today_str = datetime.now().strftime("%Y%m%d")
         start_date = (datetime.now() - timedelta(days=5)).strftime("%Y%m%d")
         df = fdr.DataReader(ticker, start_date)
         
@@ -60,11 +59,10 @@ def get_stock_name_auto(ticker):
         return "코드오류"
 
 def fetch_single_ticker_data(ticker):
-    """시세 데이터 수집 및 날짜 기록"""
+    """시세 데이터 수집"""
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
     curr_p, day_rate = get_realtime_price(ticker)
     auto_name = get_stock_name_auto(ticker)
-    
     current_date = datetime.now().strftime("%Y.%m.%d")
     
     if base_p and curr_p:
@@ -100,7 +98,6 @@ try:
     df_list = pd.read_csv(SHEET_URL)
     df_list.columns = df_list.columns.str.strip()
     df_list = df_list.dropna(subset=['종목코드', '참가자'])
-    
     unique_tickers = [str(t).strip().split('.')[0].zfill(6) for t in df_list['종목코드'].unique()]
 
     with ThreadPoolExecutor(max_workers=20) as executor:
@@ -115,36 +112,36 @@ try:
         if p_data:
             raw_name = row.get('종목명', "")
             display_name = raw_name if pd.notna(raw_name) and str(raw_name).strip() != "" else p_data['auto_name']
-            
             base_p, curr_p = p_data['기준가'], p_data['현재가']
-            diff = curr_p - base_p
-            rate = round((diff / base_p) * 100, 2)
+            rate = round(((curr_p - base_p) / base_p) * 100, 2)
             final_results.append({
                 '참가자': row['참가자'], '종목명': display_name, 'ticker': ticker,
-                '기준가': base_p, '현재가': curr_p, '등락': diff, '수익률': rate,
-                '당일등락률': p_data['당일등락률'],
-                '업데이트날짜': p_data['업데이트날짜']
+                '기준가': base_p, '현재가': curr_p, '등락': curr_p - base_p, '수익률': rate,
+                '당일등락률': p_data['당일등락률'], '업데이트날짜': p_data['업데이트날짜']
             })
 
     if final_results:
         data = pd.DataFrame(final_results).sort_values(by='수익률', ascending=False).reset_index(drop=True)
-        last_date = data['업데이트날짜'].iloc[0]
         data['rank'] = data['수익률'].rank(method='min', ascending=False).astype(int)
         
         table_rows = ""
         for i, row in data.iterrows():
             rank = row['rank'] 
             ticker = row['ticker']
+            
+            # 순위 아이콘 설정
             if rank in [1, 2, 3]:
                 medal_icon = ["🥇", "🥈", "🥉"][rank-1]
                 rank_disp = f'<div style="position: relative; display: inline-block; width: 45px; text-align: center;"><span style="font-size: 1rem; color: #333; font-weight: bold; position: relative; z-index: 1;">{rank}위</span><span style="font-size: 1.35rem; position: absolute; top: -28px; left: 10px; z-index: 2; opacity: 0.85;">{medal_icon}</span></div>'
             else:
                 rank_disp = f'<span style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</span>'
             
+            # 색상 설정 (수익률)
             if row['수익률'] > 0: color, icon, prefix = "color:#e74c3c;", "▲", "+"
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
 
+            # 색상 설정 (당일등락률)
             day_rate = row['당일등락률']
             day_color = "#e74c3c" if day_rate > 0 else "#3498db" if day_rate < 0 else "#333"
             day_icon = "▲" if day_rate > 0 else "▼" if day_rate < 0 else ""
@@ -153,14 +150,14 @@ try:
 
             table_rows += f"""
             <tr style="font-size:0.95rem;">
-                <td style="padding:7px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
-                <td style="padding:7px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
-                <td style="padding:7px 10px; border-bottom:1px solid #eee; text-align:center;">
+                <td style="padding:10px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
+                <td style="padding:10px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
+                <td style="padding:10px 10px; border-bottom:1px solid #eee; text-align:center;">
                     <a href="{naver_url}" target="_blank" style="text-decoration:none; color:inherit;">
                         <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px; cursor:pointer;">{row['종목명']}</div>
                     </a>
-                    <div class="pc-only" style="font-size:0.85rem; color:{day_color}; font-weight:bold; margin-top:-3px; margin-bottom:5px;">
-                        {day_icon} {abs(day_rate):.2f}%
+                    <div class="pc-only" style="font-size:0.85rem; color:{day_color}; font-weight:bold; margin-top:-2px; margin-bottom:5px;">
+                        ({day_icon} {abs(day_rate):.2f}%)
                     </div>
                     <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
                         <div style="display:table; width:100%;">
@@ -170,9 +167,9 @@ try:
                         </div>
                     </div>
                 </td>
-                <td class="pc-only" style="padding:9px 5px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
-                <td class="pc-only" style="padding:9px 5px; border-bottom:1px solid #eee; font-weight:bold;">{row['현재가']:,.0f}원</td>
-                <td class="pc-only" style="padding:9px 5px; border-bottom:1px solid #eee; {color} font-weight:bold;">{icon} {abs(row['등락']):,.0f}원</td>
+                <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
+                <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; font-weight:bold;">{row['현재가']:,.0f}원</td>
+                <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; {color} font-weight:bold;">{icon} {abs(row['등락']):,.0f}원</td>
                 <td style="padding:12px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.05rem;">{prefix}{row['수익률']:.2f}%</td>
             </tr>
             """
@@ -180,7 +177,7 @@ try:
         st.markdown(f"""
             <style>
                 .mobile-only {{ display: none !important; }}
-                .pc-only {{ display: none !important; }} /* 기본적으로 숨김 */
+                .pc-only {{ display: none !important; }}
                 
                 @media (min-width: 801px) {{
                     .pc-only {{ display: table-cell !important; }}
@@ -189,27 +186,27 @@ try:
                 
                 @media (max-width: 800px) {{
                     .mobile-only {{ display: block !important; }}
-                    /* 모바일에서 기준가, 현재가, 등락 컬럼을 완전히 제거 */
                     .pc-only {{ display: none !important; }}
                 }}
             </style>
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
                 <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
                     <thead>
-                        <tr style="background-color:#1a3a5f; color:white; font-size:0.9rem;">
-                            <th style="width:12%; padding:12px 2px;">순위</th>
-                            <th style="width:13%; padding:12px 2px;">참가자</th>
-                            <th style="width:40%; padding:12px 5px;">종목 정보</th> <th class="pc-only" style="width:12%;">기준가</th>
-                            <th class="pc-only" style="width:12%;">현재가</th>
-                            <th class="pc-only" style="width:12%;">등락</th>
-                            <th style="width:20%; padding:12px 5px;">수익률</th>
+                        <tr style="background-color:#1a3a5f; color:white; font-size:1.2rem;">
+                            <th style="width:12%; padding:15px 2px;">순위</th>
+                            <th style="width:13%;">참가자</th>
+                            <th style="width:30%;">종목 정보</th>
+                            <th class="pc-only" style="width:15%;">기준가</th>
+                            <th class="pc-only" style="width:15%;">현재가</th>
+                            <th class="pc-only" style="width:15%;">등락</th>
+                            <th style="width:18%;">수익률</th>
                         </tr>
                     </thead>
                     <tbody>{table_rows}</tbody>
                 </table>
             </div>
         """, unsafe_allow_html=True)
-        st.success(f"✅ 네이버 금융 시세 반영 완료 ({last_date})")
+        st.success(f"✅ 네이버 금융 시세 반영 완료 ({data['업데이트날짜'].iloc[0]})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
 # (이하 가이드 섹션 동일)
