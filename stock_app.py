@@ -129,7 +129,7 @@ try:
         for i, row in data.iterrows():
             rank = row['rank'] 
             ticker = row['ticker']
-            day_rate = row['당일등락률'] # 여기 변수명을 정확히 맞췄습니다.
+            day_rate = row['당일등락률']
             
             if rank in [1, 2, 3]:
                 medal_icon = ["🥇", "🥈", "🥉"][rank-1]
@@ -137,12 +137,11 @@ try:
             else:
                 rank_disp = f'<span style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</span>'
             
-            # 전체 수익률 색상
             if row['수익률'] > 0: color, icon, prefix = "color:#e74c3c;", "▲", "+"
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
 
-            # 당일 등락률 색상 (PC 전용 노출용)
+            # 당일 등락률 색상 설정
             d_color = "#e74c3c" if day_rate > 0 else "#3498db" if day_rate < 0 else "#333"
             d_icon = "▲" if day_rate > 0 else "▼" if day_rate < 0 else ""
 
@@ -192,7 +191,10 @@ try:
                         <tr style="background-color:#1a3a5f; color:white; font-size:1.2rem;">
                             <th style="width:12%; padding:15px 2px;">순위</th>
                             <th style="width:13%;">참가자</th>
-                            <th style="width:30%;">종목 정보</th>
+                            <th style="width:30%; padding:10px 5px;">
+                                <div>종목 정보</div>
+                                <div class="pc-only" style="font-size:0.8rem; font-weight:normal; opacity:0.8; margin-top:2px;">(당일등락률)</div>
+                            </th>
                             <th class="pc-only" style="width:15%;">기준가</th>
                             <th class="pc-only" style="width:15%;">현재가</th>
                             <th class="pc-only" style="width:15%;">등락</th>
