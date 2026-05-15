@@ -191,8 +191,8 @@ try:
                 <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
                     <thead>
                         <tr style="background-color:#1a3a5f; color:white; font-size:1.2rem;">
-                            <th style="width:12%; padding:15px 2px;">순위</th>
-                            <th style="width:13%;">참가자</th>
+                            <th style="width:11%; padding:15px 2px;">순위</th>
+                            <th style="width:15%;">참가자</th>
                             <th style="width:30%;">
                                 <div>종목 정보</div>
                                 <div class="pc-only" style="font-size:0.8rem; font-weight:normal; opacity:0.8; margin-top:2px;">(당일등락률)</div>
