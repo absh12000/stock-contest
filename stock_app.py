@@ -150,7 +150,7 @@ try:
                 <td style="padding:7px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
                 <td style="padding:7px 10px; border-bottom:1px solid #eee; text-align:center;">
                     <a href="{naver_url}" target="_blank" style="text-decoration:none; color:inherit;">
-                        <div style="font-size:1.04rem; font-weight:bold; color:#000; cursor:pointer; margin-bottom:5px;">{row['종목명']} 🔗</div>
+                        <div style="font-size:1.04rem; font-weight:bold; color:#000; cursor:pointer; margin-bottom:5px;">{row['종목명']}</div>
                     </a>
                     <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
                         <div style="display:table; width:100%;">
