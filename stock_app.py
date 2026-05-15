@@ -72,8 +72,10 @@ def fetch_single_ticker_data(ticker):
         }
     return None
 
+# 상단 타이틀
 st.title("🧭 주식 동행")
 
+# 실시간 갱신 버튼
 if st.button('🔄 실시간 시세 갱신'):
     st.cache_data.clear()
     st.rerun()
@@ -85,6 +87,11 @@ st.markdown(f"""
             <span style='font-weight:bold; font-size:1.05rem;'> "나누는 지식은 투자의 눈을 밝히고,<br>함께하는 동행은 수익의 뿌리를 깊게 합니다."</span><br>
             <span style='color:#666; font-size:0.9rem;'>{BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]}부터 현재까지의 기록입니다.</span>
         </p>
+        <div style='border-top:1px solid #eee; padding-top:10px; margin-top:10px;'>
+            <p style='color:#e74c3c; font-size:0.85rem; font-weight:bold; margin-bottom:0;'>
+                ⚠️ [주의] 본 데이터는 네이버 금융 정보를 기반으로 한 정보 공유용이며, 모든 투자의 책임은 본인에게 있습니다.
+            </p>
+        </div>
     </div>
 """, unsafe_allow_html=True)
 
