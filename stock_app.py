@@ -196,7 +196,7 @@ try:
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
                 <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
                     <thead>
-                        <tr style="background-color:#1a3a5f; color:white; font-size:0.9rem;">
+                        <tr style="background-color:#1a3a5f; color:white; font-size:1.2rem;">
                             <th style="width:12%; padding:12px 2px;">순위</th>
                             <th style="width:13%; padding:12px 2px;">참가자</th>
                             <th style="width:40%; padding:12px 5px;">종목 정보</th> <th class="pc-only" style="width:12%;">기준가</th>
