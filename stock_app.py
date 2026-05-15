@@ -32,17 +32,24 @@ def get_pure_closing_price(ticker, target_date):
     return None, None
 
 def get_realtime_price(ticker):
-    """장중 실시간 시세 부품 (네이버 기반)"""
+    """장중 실시간 시세 부품 (네이버 기반) 및 당일 등락률 계산을 위한 데이터 수집"""
     try:
-        today_str = datetime.now().strftime("%Y%m%d")
-        df = fdr.DataReader(ticker, today_str)
+        # 최근 5일치 데이터를 가져와서 [오늘 종가(현재가)]와 [전일 종가]를 확보
+        start_search = (datetime.now() - timedelta(days=5)).strftime("%Y%m%d")
+        df = fdr.DataReader(ticker, start_search)
+        
         if not df.empty:
-            return int(df['Close'].iloc[-1])
-        else:
-            df_yest = fdr.DataReader(ticker, (datetime.now() - timedelta(days=5)).strftime("%Y%m%d"))
-            return int(df_yest['Close'].iloc[-1])
+            curr_p = int(df['Close'].iloc[-1])
+            # 데이터가 2개 이상일 때만 전일 대비 등락률 계산 가능
+            if len(df) > 1:
+                prev_p = int(df['Close'].iloc[-2])
+                day_diff_rate = ((curr_p - prev_p) / prev_p) * 100
+            else:
+                day_diff_rate = 0.0
+            return curr_p, day_diff_rate
+        return None, 0.0
     except:
-        return None
+        return None, 0.0
 
 @st.cache_data
 def get_stock_name_auto(ticker):
@@ -56,10 +63,9 @@ def get_stock_name_auto(ticker):
 def fetch_single_ticker_data(ticker):
     """시세 데이터 수집 및 날짜 기록"""
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
-    curr_p = get_realtime_price(ticker)
+    curr_p, day_rate = get_realtime_price(ticker)
     auto_name = get_stock_name_auto(ticker)
     
-    # [핵심 수정] 시간은 완전히 버리고 날짜만 기록합니다.
     current_date = datetime.now().strftime("%Y.%m.%d")
     
     if base_p and curr_p:
@@ -67,6 +73,7 @@ def fetch_single_ticker_data(ticker):
             'ticker': ticker, 
             '기준가': base_p, 
             '현재가': curr_p, 
+            '당일등락률': day_rate,
             '업데이트날짜': current_date,
             'auto_name': auto_name
         }
@@ -121,6 +128,7 @@ try:
             final_results.append({
                 '참가자': row['참가자'], '종목명': display_name, 'ticker': ticker,
                 '기준가': base_p, '현재가': curr_p, '등락': diff, '수익률': rate,
+                '당일등락률': p_data['당일등락률'],
                 '업데이트날짜': p_data['업데이트날짜']
             })
 
@@ -143,7 +151,12 @@ try:
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
 
-            # 네이버 증권 상세 페이지 링크 주소 생성
+            # 당일 등락률 색상 설정
+            day_rate = row['당일등락률']
+            if day_rate > 0: day_color, day_icon = "#e74c3c", "▲"
+            elif day_rate < 0: day_color, day_icon = "#3498db", "▼"
+            else: day_color, day_icon = "#333", ""
+
             naver_url = f"https://finance.naver.com/item/main.naver?code={ticker}"
 
             table_rows += f"""
@@ -152,8 +165,11 @@ try:
                 <td style="padding:7px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
                 <td style="padding:7px 10px; border-bottom:1px solid #eee; text-align:center;">
                     <a href="{naver_url}" target="_blank" style="text-decoration:none; color:inherit;">
-                        <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px; cursor:pointer;">{row['종목명']}</div>
+                        <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:2px; cursor:pointer;">{row['종목명']}</div>
                     </a>
+                    <div class="pc-only" style="font-size:0.8rem; color:{day_color}; font-weight:bold; margin-bottom:5px;">
+                        {day_icon} {abs(day_rate):.2f}%
+                    </div>
                     <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
                         <div style="display:table; width:100%;">
                             <div style="display:table-row;"><div style="display:table-cell;">기준가:</div><div style="display:table-cell; text-align:right;">{row['기준가']:,.0f}원</div></div>
@@ -172,11 +188,13 @@ try:
         st.markdown(f"""
             <style>
                 .mobile-only {{ display: none !important; }}
-                .pc-only {{ display: table-cell !important; }}
+                .pc-only {{ display: block !important; }}
                 @media (max-width: 800px) {{
                     .mobile-only {{ display: block !important; }}
                     .pc-only {{ display: none !important; }}
                 }}
+                /* 테이블 내에서는 block 대신 table-cell 유지 */
+                td.pc-only, th.pc-only {{ display: table-cell !important; }}
             </style>
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
                 <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
@@ -195,7 +213,6 @@ try:
                 </table>
             </div>
         """, unsafe_allow_html=True)
-        # [수리 완료] 시간은 삭제하고 날짜만 깔끔하게 노출
         st.success(f"✅ 네이버 금융 시세 반영 완료 ({last_date})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
