@@ -32,17 +32,24 @@ def get_pure_closing_price(ticker, target_date):
     return None, None
 
 def get_realtime_price(ticker):
-    """장중 실시간 시세 부품 (네이버 기반)"""
+    """장중 실시간 시세 및 전일 대비 등락률 데이터 수집"""
     try:
-        today_str = datetime.now().strftime("%Y%m%d")
-        df = fdr.DataReader(ticker, today_str)
+        # 전일 종가를 가져오기 위해 최근 5일치 조회
+        start_search = (datetime.now() - timedelta(days=5)).strftime("%Y%m%d")
+        df = fdr.DataReader(ticker, start_search)
+        
         if not df.empty:
-            return int(df['Close'].iloc[-1])
-        else:
-            df_yest = fdr.DataReader(ticker, (datetime.now() - timedelta(days=5)).strftime("%Y%m%d"))
-            return int(df_yest['Close'].iloc[-1])
+            curr_p = int(df['Close'].iloc[-1])
+            # 전일 데이터가 있으면 등락률 계산
+            if len(df) > 1:
+                prev_p = int(df['Close'].iloc[-2])
+                day_rate = ((curr_p - prev_p) / prev_p) * 100
+            else:
+                day_rate = 0.0
+            return curr_p, day_rate
+        return None, 0.0
     except:
-        return None
+        return None, 0.0
 
 @st.cache_data
 def get_stock_name_auto(ticker):
@@ -56,7 +63,7 @@ def get_stock_name_auto(ticker):
 def fetch_single_ticker_data(ticker):
     """시세 데이터 수집 및 날짜 기록"""
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
-    curr_p = get_realtime_price(ticker)
+    curr_p, day_rate = get_realtime_price(ticker)
     auto_name = get_stock_name_auto(ticker)
     
     # [핵심 수정] 시간은 완전히 버리고 날짜만 기록합니다.
@@ -67,6 +74,7 @@ def fetch_single_ticker_data(ticker):
             'ticker': ticker, 
             '기준가': base_p, 
             '현재가': curr_p, 
+            '당일등락률': day_rate,
             '업데이트날짜': current_date,
             'auto_name': auto_name
         }
@@ -120,107 +128,4 @@ try:
             rate = round((diff / base_p) * 100, 2)
             final_results.append({
                 '참가자': row['참가자'], '종목명': display_name, 'ticker': ticker,
-                '기준가': base_p, '현재가': curr_p, '등락': diff, '수익률': rate,
-                '업데이트날짜': p_data['업데이트날짜']
-            })
-
-    if final_results:
-        data = pd.DataFrame(final_results).sort_values(by='수익률', ascending=False).reset_index(drop=True)
-        last_date = data['업데이트날짜'].iloc[0]
-        data['rank'] = data['수익률'].rank(method='min', ascending=False).astype(int)
-        
-        table_rows = ""
-        for i, row in data.iterrows():
-            rank = row['rank'] 
-            ticker = row['ticker']
-            if rank in [1, 2, 3]:
-                medal_icon = ["🥇", "🥈", "🥉"][rank-1]
-                rank_disp = f'<div style="position: relative; display: inline-block; width: 45px; text-align: center;"><span style="font-size: 1rem; color: #333; font-weight: bold; position: relative; z-index: 1;">{rank}위</span><span style="font-size: 1.35rem; position: absolute; top: -28px; left: 10px; z-index: 2; opacity: 0.85;">{medal_icon}</span></div>'
-            else:
-                rank_disp = f'<span style="font-size: 1rem; color: #333; font-weight: bold;">{rank}위</span>'
-            
-            if row['수익률'] > 0: color, icon, prefix = "color:#e74c3c;", "▲", "+"
-            elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
-            else: color, icon, prefix = "color:#333;", "", ""
-
-            # 네이버 증권 상세 페이지 링크 주소 생성
-            naver_url = f"https://finance.naver.com/item/main.naver?code={ticker}"
-
-            table_rows += f"""
-            <tr style="font-size:0.95rem;">
-                <td style="padding:7px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
-                <td style="padding:7px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
-                <td style="padding:7px 10px; border-bottom:1px solid #eee; text-align:center;">
-                    <a href="{naver_url}" target="_blank" style="text-decoration:none; color:inherit;">
-                        <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px; cursor:pointer;">{row['종목명']}</div>
-                    </a>
-                    <div class="mobile-only" style="font-size:0.72rem; color:#555; line-height:1.4; font-weight:normal; text-align:left; display:inline-block; width:100%; max-width:120px;">
-                        <div style="display:table; width:100%;">
-                            <div style="display:table-row;"><div style="display:table-cell;">기준가:</div><div style="display:table-cell; text-align:right;">{row['기준가']:,.0f}원</div></div>
-                            <div style="display:table-row; color:#333; font-weight:bold;"><div style="display:table-cell;">현재가:</div><div style="display:table-cell; text-align:right;">{row['현재가']:,.0f}원</div></div>
-                            <div style="display:table-row; {color}"><div style="display:table-cell;">등락:</div><div style="display:table-cell; text-align:right;">{icon}{abs(row['등락']):,.0f}원</div></div>
-                        </div>
-                    </div>
-                </td>
-                <td class="pc-only" style="padding:9px 5px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
-                <td class="pc-only" style="padding:9px 5px; border-bottom:1px solid #eee; font-weight:bold;">{row['현재가']:,.0f}원</td>
-                <td class="pc-only" style="padding:9px 5px; border-bottom:1px solid #eee; {color} font-weight:bold;">{icon} {abs(row['등락']):,.0f}원</td>
-                <td style="padding:12px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.05rem;">{prefix}{row['수익률']:.2f}%</td>
-            </tr>
-            """
-        
-        st.markdown(f"""
-            <style>
-                .mobile-only {{ display: none !important; }}
-                .pc-only {{ display: table-cell !important; }}
-                @media (max-width: 800px) {{
-                    .mobile-only {{ display: block !important; }}
-                    .pc-only {{ display: none !important; }}
-                }}
-            </style>
-            <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
-                <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
-                    <thead>
-                        <tr style="background-color:#1a3a5f; color:white; font-size:0.9rem;">
-                            <th style="width:12%; padding:12px 2px;">순위</th>
-                            <th style="width:13%; padding:12px 2px;">참가자</th>
-                            <th style="width:30%; padding:12px 5px;">종목 정보</th>
-                            <th class="pc-only" style="width:15%;">기준가</th>
-                            <th class="pc-only" style="width:15%;">현재가</th>
-                            <th class="pc-only" style="width:15%;">등락</th>
-                            <th style="width:18%; padding:12px 5px;">수익률</th>
-                        </tr>
-                    </thead>
-                    <tbody>{table_rows}</tbody>
-                </table>
-            </div>
-        """, unsafe_allow_html=True)
-        # [수리 완료] 시간은 삭제하고 날짜만 깔끔하게 노출
-        st.success(f"✅ 네이버 금융 시세 반영 완료 ({last_date})")
-except Exception as e:
-    st.error(f"오류 발생: {e}")
-
-st.markdown("---")
-st.markdown(f"""
-<div style='background-color:#ffffff; padding:25px; border-radius:10px; border:1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.05);'>
-<h3 style='color:#1a3a5f; margin-top:0; margin-bottom:20px; border-bottom:2px solid #1a3a5f; padding-bottom:10px;'>🧭 데이터 산출 가이드</h3>
-<p style='font-size:0.95rem; line-height:1.8; color:#333; margin:0;'>
-<b>1. 데이터 기준 및 출처</b><br>
-- 본 시스템은 네이버 금융(Naver Finance)의 시장 정보를 실시간으로 참조합니다.<br>
-- 자료 출처: 네이버 금융 정보 서비스<br><br>
-<b>2. 휴일 및 비영업일 데이터 반영</b><br>
-- 시장 휴장일(토, 일, 공휴일)에는 데이터가 업데이트되지 않으며, 직전 거래일 종가로 산출됩니다.<br>
-- 반영 기간: {BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]} ~ {END_DATE[:4]}.{END_DATE[4:6]}.{END_DATE[6:]}<br><br>
-<b>3. 장중 데이터와 장마감 데이터의 차이</b><br>
-- 장중(09:00~15:30): 네이버 금융 실시간 시세를 바탕으로 수익률을 계산합니다.<br>
-- 장마감 후: 당일 최종 확정된 정규장 종가(15:30)를 기준으로 데이터가 고정됩니다.<br><br>
-<b>4. 실시간 데이터 오차 안내</b><br>
-- 네이버 시스템과 실제 HTS 간에는 약 수 초에서 수 분의 시차가 발생할 수 있습니다.<br><br>
-<b>5. 업데이트 및 순위 산정</b><br>
-- 본 페이지는 사용자가 새로고침(F5)을 할 때 최신 데이터를 수집하여 반영합니다.<br>
-- 시작일 기준가 대비 현재가 수익률로 실시간 순위가 결정됩니다.<br><br>
-<span style='color:#e74c3c; font-weight:bold;'>⚠️ [주의] 본 데이터는 정보 공유를 목적으로 하며, 모든 투자의 책임은 본인에게 있습니다.</span><br>
-<span style='color:#888; font-size:0.85rem; display:block; margin-top:10px;'>* 시스템 수정 및 기술 문의: 푸른돌디</span>
-</p>
-</div>
-""", unsafe_allow_html=True)
+                '기준가': base_p, '현재가': curr_p, '등락': diff, '수익률
