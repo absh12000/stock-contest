@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 
-# 1. 구글 시트 ID 설정
+# 1. 구글 시트 ID 설정 및 주소 가공
 SHEET_ID = "1qY0Z-Mzny61lk4TfO0FNoYF870ve3sI5SbDA4jS5M0Y"
 SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
 
@@ -17,12 +17,13 @@ END_DATE = "20260529"
 
 @st.cache_data(ttl=60) 
 def get_pure_closing_price(ticker, target_date):
+    """기준일 종가 가져오기 (주말일 경우 전 거래일 추적)"""
     try:
         df = fdr.DataReader(ticker, target_date, target_date)
         if not df.empty and 'Close' in df.columns:
             return int(df['Close'].iloc[-1]), target_date
         
-        # 주말/휴일일 경우 일주일 전부터 데이터 추적
+        # 주말/휴일일 경우 7일 전부터 데이터 추적 후 마지막 거래일 종가 선택
         start_p = (datetime.strptime(target_date, "%Y%m%d") - timedelta(days=7)).strftime("%Y%m%d")
         df_prev = fdr.DataReader(ticker, start_p, target_date)
         if not df_prev.empty and 'Close' in df_prev.columns:
@@ -50,7 +51,8 @@ def get_realtime_price(ticker):
                     day_rate = 0.0
                 return curr_p, day_rate
     except:
-        return None, 0.0
+        pass
+    return None, 0.0
 
 def fetch_single_ticker_data(ticker):
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
@@ -83,7 +85,7 @@ st.markdown(f"""
         </p>
         <div style='border-top:1px solid #eee; padding-top:10px; margin-top:10px;'>
             <p style='color:#e74c3c; font-size:0.85rem; font-weight:bold; margin-bottom:0;'>
-                ⚠️ [주의] 본 데이터는 네이버 금융 정보를 기반으로 한 정보 공유용이며, 모든 투자의 책임은 본인에게 있습니다.
+                ⚠️ [주의] 본 데이터는 금융 시장 정보를 참조한 정보 공유용이며, 모든 투자의 책임은 본인에게 있습니다.
             </p>
         </div>
     </div>
