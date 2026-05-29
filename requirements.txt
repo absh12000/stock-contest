@@ -1,4 +1,4 @@
 streamlit
 pykrx
 pandas
-FinanceDataReader
+finance-dataReader
