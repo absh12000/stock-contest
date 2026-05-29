@@ -18,12 +18,10 @@ END_DATE = "20260529"
 @st.cache_data(ttl=60) 
 def get_pure_closing_price(ticker, target_date):
     try:
-        # [교체] pykrx 엔진으로 타겟 날짜 종가 조회
         df = stock.get_market_ohlcv_by_date(target_date, target_date, ticker)
         if not df.empty and df['종가'].iloc[-1] > 0:
             return int(df['종가'].iloc[-1]), target_date
         
-        # 해당 날짜가 휴일일 경우, 직전 7일 데이터를 긁어와 가장 최근 종가 채택
         start_p = (datetime.strptime(target_date, "%Y%m%d") - timedelta(days=7)).strftime("%Y%m%d")
         df_prev = stock.get_market_ohlcv_by_date(start_p, target_date, ticker)
         if not df_prev.empty:
@@ -37,7 +35,6 @@ def get_pure_closing_price(ticker, target_date):
 def get_realtime_price(ticker):
     """장중 실시간 시세 및 전일 대비 등락률 계산"""
     try:
-        # [교체] pykrx 엔진으로 실시간 시세 및 전일 종가 비교용 데이터 로드
         today_str = datetime.now().strftime("%Y%m%d")
         start_date = (datetime.now() - timedelta(days=7)).strftime("%Y%m%d")
         df = stock.get_market_ohlcv_by_date(start_date, today_str, ticker)
@@ -149,7 +146,6 @@ try:
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
 
-            # 당일 등락률 색상 설정
             d_color = "#e74c3c" if day_rate > 0 else "#3498db" if day_rate < 0 else "#333"
             d_icon = "▲" if day_rate > 0 else "▼" if day_rate < 0 else ""
 
@@ -191,7 +187,6 @@ try:
                 }}
                 @media (max-width: 800px) {{
                     .mobile-only {{ display: block !important; }}
-                    /* 모바일에서만 제목 글자를 1rem으로 축소 (기존 1.2rem에서 변경) */
                     thead tr {{ font-size: 1rem !important; }} 
                 }}
             </style>
@@ -234,4 +229,10 @@ st.markdown(f"""
 - 장중(09:00~15:30): 한국거래소 실시간 데이터를 바탕으로 수익률을 계산합니다.<br>
 - 장마감 후: 당일 최종 확정된 정규장 종가(15:30)를 기준으로 데이터가 고정됩니다.<br><br>
 <b>4. 업데이트 및 순위 산정</b><br>
-- 본 페이지
+- 본 페이지는 사용자가 새로고침(F5)을 할 때 최신 데이터를 수집하여 반영합니다.<br>
+- 시작일 기준가 대비 현재가 수익률로 실시간 순위가 결정됩니다.<br><br>
+<span style='color:#e74c3c; font-weight:bold;'>⚠️ [주의] 본 데이터는 정보 공유를 목적으로 하며, 모든 투자의 책임은 본인에게 있습니다.</span><br>
+<span style='color:#888; font-size:0.85rem; display:block; margin-top:10px;'>* 시스템 수정 및 기술 문의: 푸른돌디</span>
+</p>
+</div>
+""", unsafe_allow_html=True)
