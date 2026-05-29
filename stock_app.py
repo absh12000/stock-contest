@@ -1,5 +1,5 @@
 import streamlit as st
-import FinanceDataReader as fdr  # 네이버/KRX 통합 엔진
+import FinanceDataReader as fdr
 import pandas as pd
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
@@ -23,7 +23,6 @@ def get_pure_closing_price(ticker, target_date):
         if not df.empty and 'Close' in df.columns:
             return int(df['Close'].iloc[-1]), target_date
         
-        # 주말/휴일일 경우 7일 전부터 데이터 추적 후 마지막 거래일 종가 선택
         start_p = (datetime.strptime(target_date, "%Y%m%d") - timedelta(days=7)).strftime("%Y%m%d")
         df_prev = fdr.DataReader(ticker, start_p, target_date)
         if not df_prev.empty and 'Close' in df_prev.columns:
