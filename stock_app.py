@@ -1,10 +1,10 @@
 import streamlit as st
-from pykrx import stock
+import FinanceDataReader as fdr
 import pandas as pd
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 
-# 페이지 설정 및 시트 주소
+# 페이지 설정 및 구글 시트 주소 (오류 방지 주소 가공)
 st.set_page_config(page_title="주식 동행", layout="wide")
 SHEET_ID = "1qY0Z-Mzny61lk4TfO0FNoYF870ve3sI5SbDA4jS5M0Y"
 SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
@@ -13,30 +13,34 @@ BASE_DATE = "20260511"
 
 @st.cache_data(ttl=60)
 def get_pure_closing_price(ticker, target_date):
+    """기준일 종가 가져오기 (주말일 경우 전 거래일 추적)"""
     try:
-        df = stock.get_market_ohlcv_by_date(target_date, target_date, ticker)
-        if not df.empty and df['종가'].iloc[-1] > 0:
-            return int(df['종가'].iloc[-1])
+        df = fdr.DataReader(ticker, target_date, target_date)
+        if not df.empty and 'Close' in df.columns and df['Close'].iloc[-1] > 0:
+            return int(df['Close'].iloc[-1])
+        
+        # 주말/휴일 대응: 7일 전부터 넉넉히 수집 후 마지막 거래일 종가 선택
         start_p = (datetime.strptime(target_date, "%Y%m%d") - timedelta(days=7)).strftime("%Y%m%d")
-        df_prev = stock.get_market_ohlcv_by_date(start_p, target_date, ticker)
-        if not df_prev.empty:
-            valid_df = df_prev[df_prev['종가'] > 0]
+        df_prev = fdr.DataReader(ticker, start_p, target_date)
+        if not df_prev.empty and 'Close' in df_prev.columns:
+            valid_df = df_prev[df_prev['Close'] > 0]
             if not valid_df.empty:
-                return int(valid_df['종가'].iloc[-1])
+                return int(valid_df['Close'].iloc[-1])
     except:
         pass
     return None
 
 def get_realtime_price(ticker):
+    """최신 장중 시세 및 전일 대비 등락률 산출"""
     try:
         today_str = datetime.now().strftime("%Y%m%d")
         start_date = (datetime.now() - timedelta(days=7)).strftime("%Y%m%d")
-        df = stock.get_market_ohlcv_by_date(start_date, today_str, ticker)
-        if not df.empty:
-            valid_df = df[df['종가'] > 0]
+        df = fdr.DataReader(ticker, start_date, today_str)
+        if not df.empty and 'Close' in df.columns:
+            valid_df = df[df['Close'] > 0]
             if not valid_df.empty:
-                curr_p = int(valid_df['종가'].iloc[-1])
-                prev_p = int(valid_df['종가'].iloc[-2]) if len(valid_df) > 1 else curr_p
+                curr_p = int(valid_df['Close'].iloc[-1])
+                prev_p = int(valid_df['Close'].iloc[-2]) if len(valid_df) > 1 else curr_p
                 day_rate = ((curr_p - prev_p) / prev_p) * 100 if len(valid_df) > 1 else 0.0
                 return curr_p, day_rate
     except:
@@ -46,9 +50,8 @@ def get_realtime_price(ticker):
 def fetch_single_ticker_data(ticker):
     base_p = get_pure_closing_price(ticker, BASE_DATE)
     curr_p, day_rate = get_realtime_price(ticker)
-    name = stock.get_market_ticker_name(ticker)
     if base_p and curr_p:
-        return {'ticker': ticker, '기준가': base_p, '현재가': curr_p, '당일등락률': day_rate, '종목명': name if name else "종목정보없음"}
+        return {'ticker': ticker, '기준가': base_p, '현재가': curr_p, '당일등락률': day_rate}
     return None
 
 # 상단 타이틀
@@ -69,7 +72,13 @@ try:
     df_list = pd.read_csv(SHEET_URL)
     df_list.columns = df_list.columns.str.strip()
     df_list = df_list.dropna(subset=['종목코드', '참가자'])
-    unique_tickers = [str(t).strip().split('.')[0].zfill(6) for t in df_list['종목코드'].unique()]
+    
+    # 종목코드 자릿수 포맷팅 (6자리 맞춤)
+    unique_tickers = []
+    for t in df_list['종목코드'].unique():
+        t_str = str(t).strip().split('.')[0]
+        if t_str.isdigit():
+            unique_tickers.append(t_str.zfill(6))
 
     with ThreadPoolExecutor(max_workers=20) as executor:
         price_results = list(executor.map(fetch_single_ticker_data, unique_tickers))
@@ -78,15 +87,22 @@ try:
 
     final_results = []
     for _, row in df_list.iterrows():
-        ticker = str(row['종목코드']).strip().split('.')[0].zfill(6)
+        t_raw = str(row['종목코드']).strip().split('.')[0]
+        if not t_raw.isdigit():
+            continue
+        ticker = t_raw.zfill(6)
         p_data = price_map.get(ticker)
         if p_data:
             base_p, curr_p = p_data['기준가'], p_data['현재가']
             rate = round(((curr_p - base_p) / base_p) * 100, 2)
+            
+            # 구글 시트에 기재된 종목명을 우선 사용
+            sh_name = row.get('종목명', '')
+            final_name = str(sh_name).strip() if pd.notna(sh_name) and str(sh_name).strip() != "" else f"종목({ticker})"
+            
             final_results.append({
-                '참가자': row['참가자'], '종목명': p_data['종목명'], 'ticker': ticker,
-                '기준가': base_p, '현재가': curr_p, '등락': curr_p - base_p, '수익률': rate,
-                '당일등락률': p_data['당일등락률']
+                '참가자': row['참가자'], '종목명': final_name, 'ticker': ticker,
+                '기준가': base_p, '현재가': curr_p, '등락': curr_p - base_p, '수익률': rate
             })
 
     if final_results:
@@ -105,33 +121,4 @@ try:
                 <td style="padding:12px; border-bottom:1px solid #eee; font-weight:bold;">{rank}위</td>
                 <td style="padding:12px; border-bottom:1px solid #eee; font-weight:bold;">{row['참가자']}</td>
                 <td style="padding:12px; border-bottom:1px solid #eee;">{row['종목명']}</td>
-                <td style="padding:12px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
-                <td style="padding:12px; border-bottom:1px solid #eee; font-weight:bold;">{row['현재가']:,.0f}원</td>
-                <td style="padding:12px; border-bottom:1px solid #eee; {color}">{icon} {abs(row['등락']):,.0f}원</td>
-                <td style="padding:12px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.05rem;">{prefix}{row['수익률']:.2f}%</td>
-            </tr>
-            """
-        
-        st.markdown(f"""
-            <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
-                <table style="width:100%; border-collapse:collapse;">
-                    <thead>
-                        <tr style="background-color:#1a3a5f; color:white; font-size:1rem; height:45px;">
-                            <th style="width:10%;">순위</th>
-                            <th style="width:15%;">참가자</th>
-                            <th style="width:25%;">종목명</th>
-                            <th style="width:15%;">기준가</th>
-                            <th style="width:15%;">현재가</th>
-                            <th style="width:15%;">등락</th>
-                            <th style="width:15%;">수익률</th>
-                        </tr>
-                    </thead>
-                    <tbody>{table_rows}</tbody>
-                </table>
-            </div>
-        """, unsafe_allow_html=True)
-        st.success(f"✅ 한국거래소(KRX) 시세 반영 완료")
-except Exception as e:
-    st.error(f"오류 발생: {e}")
-
-# 끝
+                <td style="padding:12px; border-bottom:1px solid #eee;
