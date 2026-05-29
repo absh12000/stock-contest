@@ -1,13 +1,12 @@
 import streamlit as st
-from pykrx import stock
+import FinanceDataReader as fdr  # 네이버/KRX 통합 엔진
 import pandas as pd
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
-import FinanceDataReader as fdr  # 네이버 엔진
 
 # 1. 구글 시트 ID 설정
 SHEET_ID = "1qY0Z-Mzny61lk4TfO0FNoYF870ve3sI5SbDA4jS5M0Y"
-SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
+SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
 
 # 2. 페이지 설정
 st.set_page_config(page_title="주식 동행", layout="wide")
@@ -20,11 +19,16 @@ END_DATE = "20260529"
 def get_pure_closing_price(ticker, target_date):
     try:
         df = fdr.DataReader(ticker, target_date, target_date)
-        if not df.empty:
+        if not df.empty and 'Close' in df.columns:
             return int(df['Close'].iloc[-1]), target_date
-        df_prev = fdr.DataReader(ticker, (datetime.now() - timedelta(days=7)).strftime("%Y%m%d"), target_date)
-        if not df_prev.empty:
-            return int(df_prev['Close'].iloc[-1]), df_prev.index[-1].strftime("%Y%m%d")
+        
+        # 주말/휴일일 경우 일주일 전부터 데이터 추적
+        start_p = (datetime.strptime(target_date, "%Y%m%d") - timedelta(days=7)).strftime("%Y%m%d")
+        df_prev = fdr.DataReader(ticker, start_p, target_date)
+        if not df_prev.empty and 'Close' in df_prev.columns:
+            valid_df = df_prev[df_prev['Close'] > 0]
+            if not valid_df.empty:
+                return int(valid_df['Close'].iloc[-1]), valid_df.index[-1].strftime("%Y%m%d")
     except:
         pass
     return None, None
@@ -32,34 +36,25 @@ def get_pure_closing_price(ticker, target_date):
 def get_realtime_price(ticker):
     """장중 실시간 시세 및 전일 대비 등락률 계산"""
     try:
-        # 전일 종가 비교를 위해 최근 데이터를 넉넉히 가져옴
         start_date = (datetime.now() - timedelta(days=7)).strftime("%Y%m%d")
         df = fdr.DataReader(ticker, start_date)
         
-        if not df.empty:
-            curr_p = int(df['Close'].iloc[-1])
-            if len(df) > 1:
-                prev_p = int(df['Close'].iloc[-2])
-                day_rate = ((curr_p - prev_p) / prev_p) * 100
-            else:
-                day_rate = 0.0
-            return curr_p, day_rate
-        return None, 0.0
+        if not df.empty and 'Close' in df.columns:
+            valid_df = df[df['Close'] > 0]
+            if not valid_df.empty:
+                curr_p = int(valid_df['Close'].iloc[-1])
+                if len(valid_df) > 1:
+                    prev_p = int(valid_df['Close'].iloc[-2])
+                    day_rate = ((curr_p - prev_p) / prev_p) * 100
+                else:
+                    day_rate = 0.0
+                return curr_p, day_rate
     except:
         return None, 0.0
-
-@st.cache_data
-def get_stock_name_auto(ticker):
-    try:
-        name = stock.get_market_ticker_name(ticker)
-        return name if name else "종목정보없음"
-    except:
-        return "코드오류"
 
 def fetch_single_ticker_data(ticker):
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
     curr_p, day_rate = get_realtime_price(ticker)
-    auto_name = get_stock_name_auto(ticker)
     current_date = datetime.now().strftime("%Y.%m.%d")
     if base_p and curr_p:
         return {
@@ -67,8 +62,7 @@ def fetch_single_ticker_data(ticker):
             '기준가': base_p, 
             '현재가': curr_p, 
             '당일등락률': day_rate,
-            '업데이트날짜': current_date,
-            'auto_name': auto_name
+            '업데이트날짜': current_date
         }
     return None
 
@@ -112,7 +106,7 @@ try:
         p_data = price_map.get(ticker)
         if p_data:
             raw_name = row.get('종목명', "")
-            display_name = raw_name if pd.notna(raw_name) and str(raw_name).strip() != "" else p_data['auto_name']
+            display_name = str(raw_name).strip() if pd.notna(raw_name) and str(raw_name).strip() != "" else f"종목({ticker})"
             base_p, curr_p = p_data['기준가'], p_data['현재가']
             rate = round(((curr_p - base_p) / base_p) * 100, 2)
             final_results.append({
@@ -141,7 +135,6 @@ try:
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
 
-            # 당일 등락률 색상 설정
             d_color = "#e74c3c" if day_rate > 0 else "#3498db" if day_rate < 0 else "#333"
             d_icon = "▲" if day_rate > 0 else "▼" if day_rate < 0 else ""
 
@@ -149,8 +142,8 @@ try:
 
             table_rows += f"""
             <tr style="font-size:0.95rem;">
-                <td style="padding:10px 2px; border-bottom:1px solid #eee; font-weight:bold;">{rank_disp}</td>
-                <td style="padding:10px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333;">{row['참가자']}</td>
+                <td style="padding:10px 2px; border-bottom:1px solid #eee; font-weight:bold; text-align:center;">{rank_disp}</td>
+                <td style="padding:10px 5px; border-bottom:1px solid #eee; font-weight:bold; color:#333; text-align:center;">{row['참가자']}</td>
                 <td style="padding:10px 10px; border-bottom:1px solid #eee; text-align:center;">
                     <a href="{naver_url}" target="_blank" style="text-decoration:none; color:inherit;">
                         <div style="font-size:1.04rem; font-weight:bold; color:#000; margin-bottom:5px; cursor:pointer;">{row['종목명']}</div>
@@ -166,10 +159,10 @@ try:
                         </div>
                     </div>
                 </td>
-                <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; color:#888;">{row['기준가']:,.0f}원</td>
-                <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; font-weight:bold;">{row['현재가']:,.0f}원</td>
-                <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; {color} font-weight:bold;">{icon} {abs(row['등락']):,.0f}원</td>
-                <td style="padding:12px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.05rem;">{prefix}{row['수익률']:.2f}%</td>
+                <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; color:#888; text-align:center;">{row['기준가']:,.0f}원</td>
+                <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; font-weight:bold; text-align:center;">{row['현재가']:,.0f}원</td>
+                <td class="pc-only" style="padding:10px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; text-align:center;">{icon} {abs(row['등락']):,.0f}원</td>
+                <td style="padding:12px 5px; border-bottom:1px solid #eee; {color} font-weight:bold; font-size:1.05rem; text-align:center;">{prefix}{row['수익률']:.2f}%</td>
             </tr>
             """
         
@@ -183,14 +176,13 @@ try:
                 }}
                 @media (max-width: 800px) {{
                     .mobile-only {{ display: block !important; }}
-                    /* 모바일에서만 제목 글자를 1rem으로 축소 (기존 1.2rem에서 변경) */
                     thead tr {{ font-size: 1rem !important; }} 
                 }}
             </style>
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
-                <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
+                <table style="width:100%; border-collapse:collapse; table-layout: fixed;">
                     <thead>
-                        <tr style="background-color:#1a3a5f; color:white; font-size:1.2rem;">
+                        <tr style="background-color:#1a3a5f; color:white; font-size:1.2rem; text-align:center;">
                             <th style="width:10%; padding:15px 2px;">순위</th>
                             <th style="width:17%;">참가자</th>
                             <th style="width:30%;">
@@ -207,7 +199,7 @@ try:
                 </table>
             </div>
         """, unsafe_allow_html=True)
-        st.success(f"✅ 네이버 금융 시세 반영 완료 ({data['업데이트날짜'].iloc[0]})")
+        st.success(f"✅ 금융 시세 반영 완료 ({data['업데이트날짜'].iloc[0]})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
 
@@ -217,16 +209,16 @@ st.markdown(f"""
 <h3 style='color:#1a3a5f; margin-top:0; margin-bottom:20px; border-bottom:2px solid #1a3a5f; padding-bottom:10px;'>🧭 데이터 산출 가이드</h3>
 <p style='font-size:0.95rem; line-height:1.8; color:#333; margin:0;'>
 <b>1. 데이터 기준 및 출처</b><br>
-- 본 시스템은 네이버 금융(Naver Finance)의 시장 정보를 실시간으로 참조합니다.<br>
-- 자료 출처: 네이버 금융 정보 서비스<br><br>
+- 본 시스템은 금융 시장 정보를 실시간으로 참조합니다.<br>
+- 자료 출처: 금융 정보 서비스<br><br>
 <b>2. 휴일 및 비영업일 데이터 반영</b><br>
 - 시장 휴장일(토, 일, 공휴일)에는 데이터가 업데이트되지 않으며, 직전 거래일 종가로 산출됩니다.<br>
 - 반영 기간: {BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]} ~ {END_DATE[:4]}.{END_DATE[4:6]}.{END_DATE[6:]}<br><br>
 <b>3. 장중 데이터와 장마감 데이터의 차이</b><br>
-- 장중(09:00~15:30): 네이버 금융 실시간 시세를 바탕으로 수익률을 계산합니다.<br>
+- 장중(09:00~15:30): 실시간 시세를 바탕으로 수익률을 계산합니다.<br>
 - 장마감 후: 당일 최종 확정된 정규장 종가(15:30)를 기준으로 데이터가 고정됩니다.<br><br>
 <b>4. 실시간 데이터 오차 안내</b><br>
-- 네이버 시스템과 실제 HTS 간에는 약 수 초에서 수 분의 시차가 발생할 수 있습니다.<br><br>
+- 통신 환경에 따라 실제 HTS 간에는 약 수 초에서 수 분의 시차가 발생할 수 있습니다.<br><br>
 <b>5. 업데이트 및 순위 산정</b><br>
 - 본 페이지는 사용자가 새로고침(F5)을 할 때 최신 데이터를 수집하여 반영합니다.<br>
 - 시작일 기준가 대비 현재가 수익률로 실시간 순위가 결정됩니다.<br><br>
