@@ -32,7 +32,6 @@ def get_pure_closing_price(ticker, target_date):
 def get_realtime_price(ticker):
     """장중 실시간 시세 및 전일 대비 등락률 계산"""
     try:
-        # 전일 종가 비교를 위해 최근 데이터를 넉넉히 가져옴
         start_date = (datetime.now() - timedelta(days=7)).strftime("%Y%m%d")
         df = fdr.DataReader(ticker, start_date)
         
@@ -141,7 +140,6 @@ try:
             elif row['수익률'] < 0: color, icon, prefix = "color:#3498db;", "▼", ""
             else: color, icon, prefix = "color:#333;", "", ""
 
-            # 당일 등락률 색상 설정
             d_color = "#e74c3c" if day_rate > 0 else "#3498db" if day_rate < 0 else "#333"
             d_icon = "▲" if day_rate > 0 else "▼" if day_rate < 0 else ""
 
@@ -183,24 +181,25 @@ try:
                 }}
                 @media (max-width: 800px) {{
                     .mobile-only {{ display: block !important; }}
-                    /* 모바일에서만 제목 글자를 1rem으로 축소 (기존 1.2rem에서 변경) */
-                    thead tr {{ font-size: 1rem !important; }} 
+                    /* 모바일 상단 제목 폰트 0.88rem 최적화 패치 */
+                    thead tr {{ font-size: 0.88rem !important; }} 
+                    th, td {{ padding-left: 1px !important; padding-right: 1px !important; }}
                 }}
             </style>
             <div style="width:100%; background:white; border-radius:12px; overflow:hidden; border:1px solid #eee;">
                 <table style="width:100%; border-collapse:collapse; text-align:center; table-layout: fixed;">
                     <thead>
                         <tr style="background-color:#1a3a5f; color:white; font-size:1.2rem;">
-                            <th style="width:10%; padding:15px 2px;">순위</th>
-                            <th style="width:17%;">참가자</th>
-                            <th style="width:30%;">
+                            <th style="width:11%; padding:15px 1px;">순위</th>
+                            <th style="width:15%;">참가자</th>
+                            <th style="width:50%;">
                                 <div>종목 정보</div>
                                 <div class="pc-only" style="font-size:0.8rem; font-weight:normal; opacity:0.8; margin-top:2px;">(당일등락률)</div>
                             </th>
                             <th class="pc-only" style="width:15%;">기준가</th>
                             <th class="pc-only" style="width:15%;">현재가</th>
                             <th class="pc-only" style="width:15%;">등락</th>
-                            <th style="width:18%;">수익률</th>
+                            <th style="width:24%;">수익률</th>
                         </tr>
                     </thead>
                     <tbody>{table_rows}</tbody>
@@ -209,7 +208,7 @@ try:
         """, unsafe_allow_html=True)
         st.success(f"✅ 네이버 금융 시세 반영 완료 ({data['업데이트날짜'].iloc[0]})")
 except Exception as e:
-    st.error(f"오류 발생: {e}")
+    st.error(f"⚠️ 시스템 구동 에러 발생: {e}")
 
 st.markdown("---")
 st.markdown(f"""
