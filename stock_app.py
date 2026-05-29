@@ -3,7 +3,6 @@ from pykrx import stock
 import pandas as pd
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
-import FinanceDataReader as fdr  # 네이버 엔진
 
 # 1. 구글 시트 ID 설정
 SHEET_ID = "1qY0Z-Mzny61lk4TfO0FNoYF870ve3sI5SbDA4jS5M0Y"
@@ -19,12 +18,18 @@ END_DATE = "20260529"
 @st.cache_data(ttl=60) 
 def get_pure_closing_price(ticker, target_date):
     try:
-        df = fdr.DataReader(ticker, target_date, target_date)
-        if not df.empty:
-            return int(df['Close'].iloc[-1]), target_date
-        df_prev = fdr.DataReader(ticker, (datetime.now() - timedelta(days=7)).strftime("%Y%m%d"), target_date)
+        # [교체] pykrx 엔진으로 타겟 날짜 종가 조회
+        df = stock.get_market_ohlcv_by_date(target_date, target_date, ticker)
+        if not df.empty and df['종가'].iloc[-1] > 0:
+            return int(df['종가'].iloc[-1]), target_date
+        
+        # 해당 날짜가 휴일일 경우, 직전 7일 데이터를 긁어와 가장 최근 종가 채택
+        start_p = (datetime.strptime(target_date, "%Y%m%d") - timedelta(days=7)).strftime("%Y%m%d")
+        df_prev = stock.get_market_ohlcv_by_date(start_p, target_date, ticker)
         if not df_prev.empty:
-            return int(df_prev['Close'].iloc[-1]), df_prev.index[-1].strftime("%Y%m%d")
+            valid_df = df_prev[df_prev['종가'] > 0]
+            if not valid_df.empty:
+                return int(valid_df['종가'].iloc[-1]), valid_df.index[-1].strftime("%Y%m%d")
     except:
         pass
     return None, None
@@ -32,18 +37,21 @@ def get_pure_closing_price(ticker, target_date):
 def get_realtime_price(ticker):
     """장중 실시간 시세 및 전일 대비 등락률 계산"""
     try:
-        # 전일 종가 비교를 위해 최근 데이터를 넉넉히 가져옴
+        # [교체] pykrx 엔진으로 실시간 시세 및 전일 종가 비교용 데이터 로드
+        today_str = datetime.now().strftime("%Y%m%d")
         start_date = (datetime.now() - timedelta(days=7)).strftime("%Y%m%d")
-        df = fdr.DataReader(ticker, start_date)
+        df = stock.get_market_ohlcv_by_date(start_date, today_str, ticker)
         
         if not df.empty:
-            curr_p = int(df['Close'].iloc[-1])
-            if len(df) > 1:
-                prev_p = int(df['Close'].iloc[-2])
-                day_rate = ((curr_p - prev_p) / prev_p) * 100
-            else:
-                day_rate = 0.0
-            return curr_p, day_rate
+            valid_df = df[df['종가'] > 0]
+            if not valid_df.empty:
+                curr_p = int(valid_df['종가'].iloc[-1])
+                if len(valid_df) > 1:
+                    prev_p = int(valid_df['종가'].iloc[-2])
+                    day_rate = ((curr_p - prev_p) / prev_p) * 100
+                else:
+                    day_rate = 0.0
+                return curr_p, day_rate
         return None, 0.0
     except:
         return None, 0.0
@@ -89,7 +97,7 @@ st.markdown(f"""
         </p>
         <div style='border-top:1px solid #eee; padding-top:10px; margin-top:10px;'>
             <p style='color:#e74c3c; font-size:0.85rem; font-weight:bold; margin-bottom:0;'>
-                ⚠️ [주의] 본 데이터는 네이버 금융 정보를 기반으로 한 정보 공유용이며, 모든 투자의 책임은 본인에게 있습니다.
+                ⚠️ [주의] 본 데이터는 한국거래소(KRX) 정보를 기반으로 한 정보 공유용이며, 모든 투자의 책임은 본인에게 있습니다.
             </p>
         </div>
     </div>
@@ -207,7 +215,7 @@ try:
                 </table>
             </div>
         """, unsafe_allow_html=True)
-        st.success(f"✅ 네이버 금융 시세 반영 완료 ({data['업데이트날짜'].iloc[0]})")
+        st.success(f"✅ 한국거래소(KRX) 시세 반영 완료 ({data['업데이트날짜'].iloc[0]})")
 except Exception as e:
     st.error(f"오류 발생: {e}")
 
@@ -217,21 +225,13 @@ st.markdown(f"""
 <h3 style='color:#1a3a5f; margin-top:0; margin-bottom:20px; border-bottom:2px solid #1a3a5f; padding-bottom:10px;'>🧭 데이터 산출 가이드</h3>
 <p style='font-size:0.95rem; line-height:1.8; color:#333; margin:0;'>
 <b>1. 데이터 기준 및 출처</b><br>
-- 본 시스템은 네이버 금융(Naver Finance)의 시장 정보를 실시간으로 참조합니다.<br>
-- 자료 출처: 네이버 금융 정보 서비스<br><br>
+- 본 시스템은 한국거래소(KRX) 시장 정보를 실시간으로 참조합니다.<br>
+- 자료 출처: 한국거래소 정보 시스템<br><br>
 <b>2. 휴일 및 비영업일 데이터 반영</b><br>
 - 시장 휴장일(토, 일, 공휴일)에는 데이터가 업데이트되지 않으며, 직전 거래일 종가로 산출됩니다.<br>
 - 반영 기간: {BASE_DATE[:4]}.{BASE_DATE[4:6]}.{BASE_DATE[6:]} ~ {END_DATE[:4]}.{END_DATE[4:6]}.{END_DATE[6:]}<br><br>
 <b>3. 장중 데이터와 장마감 데이터의 차이</b><br>
-- 장중(09:00~15:30): 네이버 금융 실시간 시세를 바탕으로 수익률을 계산합니다.<br>
+- 장중(09:00~15:30): 한국거래소 실시간 데이터를 바탕으로 수익률을 계산합니다.<br>
 - 장마감 후: 당일 최종 확정된 정규장 종가(15:30)를 기준으로 데이터가 고정됩니다.<br><br>
-<b>4. 실시간 데이터 오차 안내</b><br>
-- 네이버 시스템과 실제 HTS 간에는 약 수 초에서 수 분의 시차가 발생할 수 있습니다.<br><br>
-<b>5. 업데이트 및 순위 산정</b><br>
-- 본 페이지는 사용자가 새로고침(F5)을 할 때 최신 데이터를 수집하여 반영합니다.<br>
-- 시작일 기준가 대비 현재가 수익률로 실시간 순위가 결정됩니다.<br><br>
-<span style='color:#e74c3c; font-weight:bold;'>⚠️ [주의] 본 데이터는 정보 공유를 목적으로 하며, 모든 투자의 책임은 본인에게 있습니다.</span><br>
-<span style='color:#888; font-size:0.85rem; display:block; margin-top:10px;'>* 시스템 수정 및 기술 문의: 푸른돌디</span>
-</p>
-</div>
-""", unsafe_allow_html=True)
+<b>4. 업데이트 및 순위 산정</b><br>
+- 본 페이지
