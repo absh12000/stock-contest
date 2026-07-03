@@ -49,20 +49,12 @@ def get_realtime_price(ticker):
         return None, 0.0
 
 @st.cache_data
-def get_all_stock_list():
-    try:
-        df = fdr.StockListing('KRX')
-        # {종목코드: 종목명} 형태의 딕셔너리로 변환하여 검색 속도를 극대화
-        return dict(zip(df['Code'].astype(str), df['Name']))
-    except:
-        return {}
-
-# 2. 위에서 만든 딕셔너리에서 이름만 쏙 뽑아오는 함수
 def get_stock_name_auto(ticker):
-    stock_map = get_all_stock_list()
-    # 6자리 코드로 변환하여 딕셔너리에서 조회
-    clean_ticker = str(ticker).strip().zfill(6)
-    return stock_map.get(clean_ticker, "종목정보없음")
+    try:
+        name = stock.get_market_ticker_name(ticker)
+        return name if name else "종목정보없음"
+    except:
+        return "코드오류"
 
 def fetch_single_ticker_data(ticker):
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
