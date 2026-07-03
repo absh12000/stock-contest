@@ -59,8 +59,8 @@ def get_stock_name_auto(ticker):
 
         return "종목정보없음"
 
-    except Exception:
-        return "코드오류"
+    except Exception as e:
+    return str(e)
 
 def fetch_single_ticker_data(ticker):
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
