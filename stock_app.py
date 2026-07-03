@@ -51,10 +51,16 @@ def get_realtime_price(ticker):
 @st.cache_data
 def get_stock_name_auto(ticker):
     try:
-        name = stock.get_market_ticker_name(ticker)
-        return name if name else "종목정보없음"
+        # fdr의 종목 리스트를 가져와서 해당 티커의 이름을 찾습니다
+        df_krx = fdr.StockListing('KRX')
+        # ticker가 문자열 형태이므로 비교를 위해 변환
+        name = df_krx.loc[df_krx['Code'] == ticker, 'Name']
+        if not name.empty:
+            return name.values[0]
+        else:
+            return "종목정보없음"
     except:
-        return "코드오류"
+        return "조회실패"
 
 def fetch_single_ticker_data(ticker):
     base_p, _ = get_pure_closing_price(ticker, BASE_DATE)
