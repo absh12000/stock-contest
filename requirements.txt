@@ -1,4 +1,6 @@
 streamlit
 pykrx
 pandas
-finance-dataReader
+requests
+python-dotenv
+finance-datareader
