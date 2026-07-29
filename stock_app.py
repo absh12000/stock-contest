@@ -2,15 +2,12 @@ import os
 import time
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
 
 import pandas as pd
 import requests
 import streamlit as st
-from dotenv import load_dotenv
 from pykrx import stock
 
-from api.auth import get_access_token
 
 
 # =========================================================
@@ -46,19 +43,19 @@ END_DATE = "20260731"
 # 한국투자 OpenAPI 설정
 # =========================================================
 
-BASE_DIR = Path(__file__).resolve().parent
+def get_secret(name):
+    """
+    Streamlit Cloud Secrets를 우선 사용하고,
+    로컬 실행 시 환경변수를 대신 사용한다.
+    """
+    try:
+        return st.secrets.get(name, os.getenv(name))
+    except Exception:
+        return os.getenv(name)
 
-# Streamlit 파일이 프로젝트 루트에 있는 경우
-ENV_PATH = BASE_DIR / "config" / ".env"
 
-# Streamlit 파일이 하위 폴더에 있는 경우를 대비
-if not ENV_PATH.exists():
-    ENV_PATH = BASE_DIR.parent / "config" / ".env"
-
-load_dotenv(ENV_PATH)
-
-APP_KEY = os.getenv("APP_KEY")
-APP_SECRET = os.getenv("APP_SECRET")
+APP_KEY = get_secret("PSjRYpF5kztzh70Hbw1KYbcu25G6MzCt4eRQ")
+APP_SECRET = get_secret("DwdUkQsRCEYnMJtsawyQjs36a0dpazDBYLvulfULzYBXGjEkrghgxIdRMOygSUTTE0azw1g/3vNNN3qerP18mdDm5NpLAKtCDAs4j1g6M6wnICd3rZj3bv6Vt+cF3oTzxkd2KBa9RffqyIff8tulWrpFp2ID/Soh0UMm9HT6TWjmqKtrads=")
 
 KIS_BASE_URL = "https://openapi.koreainvestment.com:9443"
 CURRENT_PRICE_URL = (
@@ -186,6 +183,61 @@ def get_base_price_map(target_date):
 # =========================================================
 # 한국투자 현재가 조회
 # =========================================================
+
+
+@st.cache_data(ttl=7200)
+def get_access_token():
+    """
+    한국투자 OpenAPI 접근토큰을 발급한다.
+    별도 api/auth.py 파일 없이 이 파일 안에서 처리한다.
+    """
+
+    if not APP_KEY or not APP_SECRET:
+        raise RuntimeError(
+            "한국투자 API 키가 없습니다. "
+            "Streamlit Cloud의 Manage app → Settings → Secrets에 "
+            "APP_KEY와 APP_SECRET을 등록하세요."
+        )
+
+    token_url = f"{KIS_BASE_URL}/oauth2/tokenP"
+
+    payload = {
+        "grant_type": "client_credentials",
+        "appkey": APP_KEY,
+        "appsecret": APP_SECRET,
+    }
+
+    response = requests.post(
+        token_url,
+        json=payload,
+        headers={
+            "content-type": "application/json; charset=utf-8"
+        },
+        timeout=15,
+    )
+
+    try:
+        result = response.json()
+    except ValueError:
+        result = {}
+
+    if response.status_code != 200:
+        message = result.get("error_description") or result.get("msg1") or response.text
+        raise RuntimeError(
+            f"한국투자 토큰 발급 실패 "
+            f"(HTTP {response.status_code}): {message}"
+        )
+
+    access_token = result.get("access_token")
+
+    if not access_token:
+        raise RuntimeError(
+            f"한국투자 토큰 응답에 access_token이 없습니다: {result}"
+        )
+
+    return access_token
+
+
 
 @st.cache_data(ttl=60)
 def get_kis_realtime_price(
