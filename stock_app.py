@@ -57,8 +57,8 @@ if not ENV_PATH.exists():
 
 load_dotenv(ENV_PATH)
 
-APP_KEY = os.getenv("PSjRYpF5kztzh70Hbw1KYbcu25G6MzCt4eRQ")
-APP_SECRET = os.getenv("DwdUkQsRCEYnMJtsawyQjs36a0dpazDBYLvulfULzYBXGjEkrghgxIdRMOygSUTTE0azw1g/3vNNN3qerP18mdDm5NpLAKtCDAs4j1g6M6wnICd3rZj3bv6Vt+cF3oTzxkd2KBa9RffqyIff8tulWrpFp2ID/Soh0UMm9HT6TWjmqKtrads=")
+APP_KEY = os.getenv("APP_KEY")
+APP_SECRET = os.getenv("APP_SECRET")
 
 KIS_BASE_URL = "https://openapi.koreainvestment.com:9443"
 CURRENT_PRICE_URL = (
