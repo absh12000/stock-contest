@@ -255,7 +255,7 @@ def get_kis_realtime_price(
     if not APP_KEY or not APP_SECRET:
         raise RuntimeError(
             "APP_KEY 또는 APP_SECRET이 없습니다. "
-            "config/.env 파일을 확인하세요."
+            "Streamlit Cloud의 Settings → Secrets를 확인하세요."
         )
 
     headers = {
