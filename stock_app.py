@@ -54,8 +54,8 @@ def get_secret(name):
         return os.getenv(name)
 
 
-APP_KEY = get_secret("APP_KEY")
-APP_SECRET = get_secret("APP_SECRET")
+APP_KEY = "PSjRYpF5kztzh70Hbw1KYbcu25G6MzCt4eRQ"
+APP_SECRET = "DwdUkQsRCEYnMJtsawyQjs36a0dpazDBYLvulfULzYBXGjEkrghgxIdRMOygSUTTE0azw1g/3vNNN3qerP18mdDm5NpLAKtCDAs4j1g6M6wnICd3rZj3bv6Vt+cF3oTzxkd2KBa9RffqyIff8tulWrpFp2ID/Soh0UMm9HT6TWjmqKtrads="
 
 KIS_BASE_URL = "https://openapi.koreainvestment.com:9443"
 CURRENT_PRICE_URL = (
