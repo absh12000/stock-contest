@@ -13,8 +13,8 @@ SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=cs
 st.set_page_config(page_title="주식 동행", layout="wide")
 
 # --- [날짜 고정 설정] ---
-BASE_DATE = "20260703" 
-END_DATE = "20260731"    
+BASE_DATE = "20260803" 
+END_DATE = "20260828"    
 
 @st.cache_data(ttl=60) 
 def get_pure_closing_price(ticker, target_date):
